@@ -144,19 +144,19 @@ validateDelete :: HasId a => Int -> [a] -> ValidationResult [a]
 validateDelete tid xs =
   if any (\x -> getId x == tid) xs
     then Ok (deleteById tid xs)
-    else Error "Transaction id not found."
+    else Error ("Id " ++ show tid ++ " does not exist. No changes were made.")
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
-  let inc = totalIncome ledger
+  let inc  = totalIncome ledger
       exps = totalExpense ledger
-      net = netBalance ledger
+      net  = netBalance ledger
   putStrLn "----------------------------------------"
-  putStrLn "Totals"
+  putStrLn "Account totals"
   putStrLn "----------------------------------------"
-  putStrLn $ "Total income:  " ++ show inc
-  putStrLn $ "Total expense: " ++ show exps
-  putStrLn $ "Net balance:   " ++ show net
+  putStrLn $ "Total income:   " ++ show inc
+  putStrLn $ "Total expenses: " ++ show exps
+  putStrLn $ "Net balance:    " ++ show net
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -180,34 +180,48 @@ addTransactionInteractive ledger = do
   putStrLn "Date (yyyy-mm-dd):"
   d <- getLine
 
-  putStrLn "Kind (Income or Expense):"
+  putStrLn "Kind (type exactly: Income or Expense):"
   kindStr <- getLine
 
-  putStrLn "Category (Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other):"
+  putStrLn "Category (one of: Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other):"
   catStr <- getLine
 
   putStrLn "Description:"
   desc <- getLine
 
-  mAmount <- readDouble "Amount:"
+  mAmount <- readDouble "Amount (numbers only, e.g. 123.45):"
 
-  case ( readMaybe kindStr :: Maybe TransactionKind
-       , readMaybe catStr  :: Maybe Category
-       , mAmount
-       ) of
+  let mKind = readMaybe kindStr :: Maybe TransactionKind
+  let mCat  = readMaybe catStr  :: Maybe Category
+
+  case (mKind, mCat, mAmount) of
     (Just k, Just c, Just a) -> do
       let newId   = nextId ledger
           t       = Transaction newId d k c a desc
           updated = addTransaction t ledger
       putStrLn ""
-      putStrLn "Transaction added:"
+      putStrLn "Transaction added successfully:"
       putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
       putStrLn "-----------------------------------------------------------------------"
       putStrLn (showRow t)
       return updated
-    _ -> do
+
+    (Nothing, _, _) -> do
       putStrLn ""
-      putStrLn "Invalid input. Transaction not added."
+      putStrLn ("Invalid kind: \"" ++ kindStr ++ "\". Please type exactly \"Income\" or \"Expense\".")
+      putStrLn "Transaction was not added. Please try again from the menu."
+      return ledger
+
+    (_, Nothing, _) -> do
+      putStrLn ""
+      putStrLn ("Invalid category: \"" ++ catStr ++ "\".")
+      putStrLn "Please choose one of the listed categories. Transaction was not added."
+      return ledger
+
+    (_, _, Nothing) -> do
+      putStrLn ""
+      putStrLn "Invalid amount. Please enter a numeric value such as 100 or 99.50."
+      putStrLn "Transaction was not added."
       return ledger
 
 updateTransaction :: Transaction -> Ledger -> Ledger
@@ -216,44 +230,48 @@ updateTransaction newT ledger =
 
 promptFor :: String -> String -> IO String
 promptFor label currentValue = do
-  putStrLn $ label ++ " [" ++ currentValue ++ "]:"
+  putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
   getLine
 
 editTransactionInteractive :: Ledger -> IO Ledger
 editTransactionInteractive ledger = do
-  mId <- readInt "Enter transaction id to edit:"
+  mId <- readInt "Enter the transaction id you want to edit:"
   case mId of
     Nothing -> do
-      putStrLn "Invalid id."
+      putStrLn "Invalid id. Please enter a whole number such as 1 or 2."
       return ledger
     Just tid -> do
       case filter (\t -> transactionId t == tid) ledger of
         [] -> do
-          putStrLn "Transaction id not found."
+          putStrLn ("Id " ++ show tid ++ " does not exist. No changes were made.")
           return ledger
         (oldT:_) -> do
-          putStrLn "Press Enter to keep current value."
-          
+          putStrLn ""
+          putStrLn "Editing transaction. Leave a field empty to keep its current value."
+
           dInput <- promptFor "Date" (date oldT)
           let newDate = if null dInput then date oldT else dInput
 
-          kInput <- promptFor "Kind" (show (kind oldT))
-          let newKind = case readMaybe kInput of
-                          Just k -> k
-                          Nothing -> kind oldT
+          kInput <- promptFor "Kind (Income/Expense)" (show (kind oldT))
+          let newKind =
+                case readMaybe kInput of
+                  Just k  -> k
+                  Nothing -> kind oldT
 
           cInput <- promptFor "Category" (show (category oldT))
-          let newCategory = case readMaybe cInput of
-                              Just c -> c
-                              Nothing -> category oldT
+          let newCategory =
+                case readMaybe cInput of
+                  Just c  -> c
+                  Nothing -> category oldT
 
           descInput <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
 
           aInput <- promptFor "Amount" (show (amount oldT))
-          let newAmount = case readMaybe aInput of
-                            Just a -> a
-                            Nothing -> amount oldT
+          let newAmount =
+                case readMaybe aInput of
+                  Just a  -> a
+                  Nothing -> amount oldT
 
           let newT = oldT { date        = newDate
                           , kind        = newKind
@@ -261,13 +279,13 @@ editTransactionInteractive ledger = do
                           , description = newDesc
                           , amount      = newAmount
                           }
-          
+
           putStrLn ""
-          putStrLn "Transaction updated:"
+          putStrLn "Transaction updated successfully:"
           putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
           putStrLn "-----------------------------------------------------------------------"
           putStrLn (showRow newT)
-          
+
           return (updateTransaction newT ledger)
 
 saveLedgerToCsv :: Ledger -> IO ()
@@ -296,9 +314,9 @@ printMenu = do
   putStrLn "3. Edit transaction"
   putStrLn "4. Delete transaction"
   putStrLn "5. View totals"
-  putStrLn "0. Exit"
+  putStrLn "0. Exit and save"
   putStrLn "----------------------------------------"
-  putStrLn "Choose an option:"
+  putStrLn "Please choose an option (0-5):"
 
 loop :: Ledger -> IO Ledger
 loop ledger = do
@@ -320,10 +338,10 @@ loop ledger = do
       loop updated
 
     "4" -> do
-      mId <- readInt "Enter transaction id to delete:"
+      mId <- readInt "Enter the transaction id you want to delete:"
       case mId of
         Nothing -> do
-          putStrLn "Invalid id."
+          putStrLn "Invalid id. Please enter a whole number such as 1 or 2."
           loop ledger
         Just tid -> do
           let result = validateDelete tid ledger
@@ -333,7 +351,7 @@ loop ledger = do
               loop ledger
             Ok updated -> do
               putStrLn ""
-              putStrLn "Updated ledger:"
+              putStrLn "Transaction deleted. Updated ledger:"
               printTable updated
               loop updated
 
@@ -342,11 +360,11 @@ loop ledger = do
       loop ledger
 
     "0" -> do
-      putStrLn "Goodbye."
+      putStrLn "Saving your data and exiting. Goodbye."
       return ledger
 
     _ -> do
-      putStrLn "Invalid option."
+      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 5.")
       loop ledger
 
 main :: IO ()
