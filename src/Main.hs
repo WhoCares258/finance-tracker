@@ -13,7 +13,7 @@ data Category
   deriving (Show, Eq)
 
 data Transaction = Transaction
-  { id :: Int
+  { transactionId :: Int
   , date :: String
   , kind :: TransactionKind
   , category :: Category
