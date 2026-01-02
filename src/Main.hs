@@ -3,7 +3,7 @@ module Main (main) where
 import Text.Read (readMaybe)
 
 data TransactionKind = Income | Expense
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data Category
   = Food
@@ -12,7 +12,7 @@ data Category
   | Salary
   | Entertainment
   | Other
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data Transaction = Transaction
   { transactionId :: Int
@@ -71,6 +71,43 @@ readInt prompt = do
   input <- getLine
   return (readMaybe input)
 
+readDouble :: String -> IO (Maybe Double)
+readDouble prompt = do
+  putStrLn prompt
+  input <- getLine
+  return (readMaybe input)
+
+addTransactionInteractive :: Ledger -> IO Ledger
+addTransactionInteractive ledger = do
+  putStrLn "Add new transaction"
+
+  putStrLn "Date (yyyy-mm-dd):"
+  d <- getLine
+
+  putStrLn "Kind (Income or Expense):"
+  kindStr <- getLine
+
+  putStrLn "Category (Food | Rent | Transport | Salary | Entertainment | Other):"
+  catStr <- getLine
+
+  mAmount <- readDouble "Amount:"
+  putStrLn "Description:"
+  desc <- getLine
+
+  case (readMaybe kindStr :: Maybe TransactionKind,
+        readMaybe catStr  :: Maybe Category,
+        mAmount) of
+    (Just k, Just c, Just a) -> do
+      let newId = nextId ledger
+          t = Transaction newId d k c a desc
+          updated = addTransaction t ledger
+      putStrLn "Transaction added:"
+      print t
+      return updated
+    _ -> do
+      putStrLn "Invalid input. Transaction not added."
+      return ledger
+
 loop :: Ledger -> IO ()
 loop ledger = do
   putStrLn ""
@@ -78,6 +115,7 @@ loop ledger = do
   putStrLn "1. View ledger"
   putStrLn "2. View totals"
   putStrLn "3. Delete transaction by id"
+  putStrLn "4. Add transaction"
   putStrLn "0. Exit"
   putStrLn "Choose an option:"
   choice <- getLine
@@ -99,6 +137,9 @@ loop ledger = do
           putStrLn "Updated ledger:"
           mapM_ print updated
           loop updated
+    "4" -> do
+      updated <- addTransactionInteractive ledger
+      loop updated
     "0" ->
       putStrLn "Goodbye."
     _ -> do
