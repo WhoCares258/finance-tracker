@@ -34,6 +34,51 @@ sampleLedger =
   , Transaction 5 "2024-01-05" Expense Entertainment   75 "Concert Ticket"
   ]
 
+pad :: Int -> String -> String
+pad n s =
+  take n (s ++ repeat ' ')
+
+showRow :: Transaction -> String
+showRow t =
+  pad 4  (show (transactionId t)) ++ " | "
+  ++ pad 10 (date t)              ++ " | "
+  ++ pad 8  (show (kind t))       ++ " | "
+  ++ pad 13 (show (category t))   ++ " | "
+  ++ pad 10 (show (amount t))     ++ " | "
+  ++ description t
+
+printTable :: Ledger -> IO ()
+printTable ledger = do
+  putStrLn ""
+  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+  putStrLn "-----------------------------------------------------------------------"
+  mapM_ (putStrLn . showRow) ledger
+
+class HasId a where
+  getId :: a -> Int
+
+instance HasId Transaction where
+  getId = transactionId
+
+data ValidationResult a
+  = Ok a
+  | Error String
+  deriving (Show, Eq)
+
+instance Functor ValidationResult where
+  fmap f (Ok a)     = Ok (f a)
+  fmap _ (Error e)  = Error e
+
+instance Applicative ValidationResult where
+  pure = Ok
+  Ok f <*> Ok a     = Ok (f a)
+  Error e <*> _     = Error e
+  _ <*> Error e     = Error e
+
+instance Monad ValidationResult where
+  Ok a >>= f        = f a
+  Error e >>= _     = Error e
+
 totalIncome :: Ledger -> Double
 totalIncome ts =
   sum [ amount t | t <- ts, kind t == Income ]
@@ -52,9 +97,15 @@ nextId :: Ledger -> Int
 nextId [] = 1
 nextId ts = maximum (map transactionId ts) + 1
 
-deleteById :: Int -> Ledger -> Ledger
-deleteById tid ledger =
-  filter (\t -> transactionId t /= tid) ledger
+deleteById :: HasId a => Int -> [a] -> [a]
+deleteById tid xs =
+  filter (\x -> getId x /= tid) xs
+
+validateDelete :: HasId a => Int -> [a] -> ValidationResult [a]
+validateDelete tid xs =
+  if any (\x -> getId x == tid) xs
+    then Ok (deleteById tid xs)
+    else Error "Transaction id not found."
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
@@ -111,7 +162,9 @@ addTransactionInteractive ledger = do
           updated = addTransaction t ledger
       putStrLn ""
       putStrLn "Transaction added:"
-      print t
+      putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+      putStrLn "-----------------------------------------------------------------------"
+      putStrLn (showRow t)
       return updated
     _ -> do
       putStrLn ""
@@ -140,7 +193,7 @@ loop ledger = do
     "1" -> do
       putStrLn ""
       putStrLn "Current ledger:"
-      mapM_ print ledger
+      printTable ledger
       loop ledger
 
     "2" -> do
@@ -154,11 +207,16 @@ loop ledger = do
           putStrLn "Invalid id."
           loop ledger
         Just tid -> do
-          let updated = deleteById tid ledger
-          putStrLn ""
-          putStrLn "Updated ledger:"
-          mapM_ print updated
-          loop updated
+          let result = validateDelete tid ledger
+          case result of
+            Error msg -> do
+              putStrLn msg
+              loop ledger
+            Ok updated -> do
+              putStrLn ""
+              putStrLn "Updated ledger:"
+              printTable updated
+              loop updated
 
     "4" -> do
       showTotals ledger
