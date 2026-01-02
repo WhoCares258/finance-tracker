@@ -1,12 +1,25 @@
 module Main (main) where
 
+data TransactionKind = Income | Expense
+  deriving (Show, Eq)
+
+data Category
+  = Food
+  | Rent
+  | Transport
+  | Salary
+  | Entertainment
+  | Other
+  deriving (Show, Eq)
+
 data Transaction = Transaction
-  { amount :: Double
+  { id :: Int
+  , date :: String
+  , kind :: TransactionKind
+  , category :: Category
+  , amount :: Double
   , description :: String
   } deriving (Show, Eq)
 
 main :: IO ()
-main = do
-  let t = Transaction 123.45 "Coffee"
-  putStrLn "Here is a transaction:"
-  print t
+main = return ()
