@@ -171,6 +171,66 @@ addTransactionInteractive ledger = do
       putStrLn "Invalid input. Transaction not added."
       return ledger
 
+updateTransaction :: Transaction -> Ledger -> Ledger
+updateTransaction newT ledger =
+  map (\t -> if transactionId t == transactionId newT then newT else t) ledger
+
+promptFor :: String -> String -> IO String
+promptFor label currentValue = do
+  putStrLn $ label ++ " [" ++ currentValue ++ "]:"
+  getLine
+
+editTransactionInteractive :: Ledger -> IO Ledger
+editTransactionInteractive ledger = do
+  mId <- readInt "Enter transaction id to edit:"
+  case mId of
+    Nothing -> do
+      putStrLn "Invalid id."
+      return ledger
+    Just tid -> do
+      case filter (\t -> transactionId t == tid) ledger of
+        [] -> do
+          putStrLn "Transaction id not found."
+          return ledger
+        (oldT:_) -> do
+          putStrLn "Press Enter to keep current value."
+          
+          dInput <- promptFor "Date" (date oldT)
+          let newDate = if null dInput then date oldT else dInput
+
+          kInput <- promptFor "Kind" (show (kind oldT))
+          let newKind = case readMaybe kInput of
+                          Just k -> k
+                          Nothing -> kind oldT
+
+          cInput <- promptFor "Category" (show (category oldT))
+          let newCategory = case readMaybe cInput of
+                              Just c -> c
+                              Nothing -> category oldT
+
+          descInput <- promptFor "Description" (description oldT)
+          let newDesc = if null descInput then description oldT else descInput
+
+          aInput <- promptFor "Amount" (show (amount oldT))
+          let newAmount = case readMaybe aInput of
+                            Just a -> a
+                            Nothing -> amount oldT
+
+          let newT = oldT { date = newDate
+                          , kind = newKind
+                          , category = newCategory
+                          , description = newDesc
+                          , amount = newAmount
+                          }
+          
+          putStrLn ""
+          putStrLn "Transaction updated:"
+          putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+          putStrLn "-----------------------------------------------------------------------"
+          putStrLn (showRow newT)
+          
+          return (updateTransaction newT ledger)
+
 printMenu :: IO ()
 printMenu = do
   putStrLn ""
@@ -179,8 +239,9 @@ printMenu = do
   putStrLn "========================================"
   putStrLn "1. View transactions"
   putStrLn "2. Add transaction"
-  putStrLn "3. Delete transaction"
-  putStrLn "4. View totals"
+  putStrLn "3. Edit transaction"
+  putStrLn "4. Delete transaction"
+  putStrLn "5. View totals"
   putStrLn "0. Exit"
   putStrLn "----------------------------------------"
   putStrLn "Choose an option:"
@@ -201,6 +262,10 @@ loop ledger = do
       loop updated
 
     "3" -> do
+      updated <- editTransactionInteractive ledger
+      loop updated
+
+    "4" -> do
       mId <- readInt "Enter transaction id to delete:"
       case mId of
         Nothing -> do
@@ -218,7 +283,7 @@ loop ledger = do
               printTable updated
               loop updated
 
-    "4" -> do
+    "5" -> do
       showTotals ledger
       loop ledger
 
