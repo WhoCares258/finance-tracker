@@ -1,6 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import Text.Read (readMaybe)
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Vector as V
+import Data.Csv
+import Control.Exception (try, IOException)
 
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
@@ -79,6 +85,31 @@ instance Monad ValidationResult where
   Ok a >>= f        = f a
   Error e >>= _     = Error e
 
+instance ToNamedRecord Transaction where
+  toNamedRecord t =
+    namedRecord
+      [ "Id"          .= transactionId t
+      , "Date"        .= date t
+      , "Kind"        .= show (kind t)
+      , "Category"    .= show (category t)
+      , "Amount"      .= amount t
+      , "Description" .= description t
+      ]
+
+instance FromNamedRecord Transaction where
+  parseNamedRecord m =
+    Transaction
+      <$> m .: "Id"
+      <*> m .: "Date"
+      <*> (read <$> m .: "Kind")
+      <*> (read <$> m .: "Category")
+      <*> m .: "Amount"
+      <*> m .: "Description"
+
+instance DefaultOrdered Transaction where
+  headerOrder _ =
+    header ["Id", "Date", "Kind", "Category", "Amount", "Description"]
+
 totalIncome :: Ledger -> Double
 totalIncome ts =
   sum [ amount t | t <- ts, kind t == Income ]
@@ -110,13 +141,13 @@ validateDelete tid xs =
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
   let inc = totalIncome ledger
-      exp = totalExpense ledger
+      exps = totalExpense ledger
       net = netBalance ledger
   putStrLn "----------------------------------------"
   putStrLn "Totals"
   putStrLn "----------------------------------------"
   putStrLn $ "Total income:  " ++ show inc
-  putStrLn $ "Total expense: " ++ show exp
+  putStrLn $ "Total expense: " ++ show exps
   putStrLn $ "Net balance:   " ++ show net
 
 readInt :: String -> IO (Maybe Int)
@@ -216,11 +247,11 @@ editTransactionInteractive ledger = do
                             Just a -> a
                             Nothing -> amount oldT
 
-          let newT = oldT { date = newDate
-                          , kind = newKind
-                          , category = newCategory
+          let newT = oldT { date        = newDate
+                          , kind        = newKind
+                          , category    = newCategory
                           , description = newDesc
-                          , amount = newAmount
+                          , amount      = newAmount
                           }
           
           putStrLn ""
@@ -230,6 +261,21 @@ editTransactionInteractive ledger = do
           putStrLn (showRow newT)
           
           return (updateTransaction newT ledger)
+
+saveLedgerToCsv :: Ledger -> IO ()
+saveLedgerToCsv ledger = do
+  let bytes = encodeDefaultOrderedByName ledger
+  BL.writeFile "ledger.csv" bytes
+
+loadLedgerFromCsv :: IO Ledger
+loadLedgerFromCsv = do
+  eBytes <- try (BL.readFile "ledger.csv") :: IO (Either IOException BL.ByteString)
+  case eBytes of
+    Left _ -> return sampleLedger
+    Right bytes ->
+      case decodeByName bytes of
+        Left _        -> return sampleLedger
+        Right (_, v)  -> return (V.toList v)
 
 printMenu :: IO ()
 printMenu = do
@@ -246,7 +292,7 @@ printMenu = do
   putStrLn "----------------------------------------"
   putStrLn "Choose an option:"
 
-loop :: Ledger -> IO ()
+loop :: Ledger -> IO Ledger
 loop ledger = do
   printMenu
   choice <- getLine
@@ -287,12 +333,16 @@ loop ledger = do
       showTotals ledger
       loop ledger
 
-    "0" ->
+    "0" -> do
       putStrLn "Goodbye."
+      return ledger
 
     _ -> do
       putStrLn "Invalid option."
       loop ledger
 
 main :: IO ()
-main = loop sampleLedger
+main = do
+  initial <- loadLedgerFromCsv
+  final   <- loop initial
+  saveLedgerToCsv final
