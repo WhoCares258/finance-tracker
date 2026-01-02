@@ -2,8 +2,6 @@ cabal-version:       2.2
 
 name:                whocares
 version:             0.1.0.0
--- synopsis:
--- description:
 homepage:            https://github.com/githubuser/whocares#readme
 license:             BSD-3-Clause
 license-file:        LICENSE
