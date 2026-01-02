@@ -1,5 +1,7 @@
 module Main (main) where
 
+import Text.Read (readMaybe)
+
 data TransactionKind = Income | Expense
   deriving (Show, Eq)
 
@@ -14,11 +16,11 @@ data Category
 
 data Transaction = Transaction
   { transactionId :: Int
-  , date :: String
-  , kind :: TransactionKind
-  , category :: Category
-  , amount :: Double
-  , description :: String
+  , date          :: String
+  , kind          :: TransactionKind
+  , category      :: Category
+  , amount        :: Double
+  , description   :: String
   } deriving (Show, Eq)
 
 type Ledger = [Transaction]
@@ -50,27 +52,58 @@ nextId :: Ledger -> Int
 nextId [] = 1
 nextId ts = maximum (map transactionId ts) + 1
 
--- delete by id (pure)
 deleteById :: Int -> Ledger -> Ledger
 deleteById tid ledger =
   filter (\t -> transactionId t /= tid) ledger
 
-main :: IO ()
-main = do
-  putStrLn "Original ledger:"
-  mapM_ print sampleLedger
-
-  let updatedLedger = deleteById 3 sampleLedger
-
-  putStrLn ""
-  putStrLn "Ledger after deleting id 3:"
-  mapM_ print updatedLedger
-
-  let inc  = totalIncome updatedLedger
-      exp  = totalExpense updatedLedger
-      net  = netBalance updatedLedger
-
-  putStrLn ""
+showTotals :: Ledger -> IO ()
+showTotals ledger = do
+  let inc = totalIncome ledger
+      exp = totalExpense ledger
+      net = netBalance ledger
   putStrLn $ "Total income:  " ++ show inc
   putStrLn $ "Total expense: " ++ show exp
   putStrLn $ "Net balance:   " ++ show net
+
+readInt :: String -> IO (Maybe Int)
+readInt prompt = do
+  putStrLn prompt
+  input <- getLine
+  return (readMaybe input)
+
+loop :: Ledger -> IO ()
+loop ledger = do
+  putStrLn ""
+  putStrLn "WhoCares Personal Finance Tracker"
+  putStrLn "1. View ledger"
+  putStrLn "2. View totals"
+  putStrLn "3. Delete transaction by id"
+  putStrLn "0. Exit"
+  putStrLn "Choose an option:"
+  choice <- getLine
+  case choice of
+    "1" -> do
+      mapM_ print ledger
+      loop ledger
+    "2" -> do
+      showTotals ledger
+      loop ledger
+    "3" -> do
+      mId <- readInt "Enter transaction id to delete:"
+      case mId of
+        Nothing -> do
+          putStrLn "Invalid id."
+          loop ledger
+        Just tid -> do
+          let updated = deleteById tid ledger
+          putStrLn "Updated ledger:"
+          mapM_ print updated
+          loop updated
+    "0" ->
+      putStrLn "Goodbye."
+    _ -> do
+      putStrLn "Invalid option."
+      loop ledger
+
+main :: IO ()
+main = loop sampleLedger
