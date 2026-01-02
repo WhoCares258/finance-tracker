@@ -48,19 +48,22 @@ addTransaction t ledger = ledger <> [t]
 
 nextId :: Ledger -> Int
 nextId [] = 1
-nextId ts = maximum (map id ts) + 1
+nextId ts = maximum (map transactionId ts) + 1
+
+-- delete by id (pure)
+deleteById :: Int -> Ledger -> Ledger
+deleteById tid ledger =
+  filter (\t -> transactionId t /= tid) ledger
 
 main :: IO ()
 main = do
   putStrLn "Original ledger:"
   mapM_ print sampleLedger
 
-  let newTxId = nextId sampleLedger
-      newTx   = Transaction newTxId "2024-01-06" Expense Food 30 "Snacks"
-      updatedLedger = addTransaction newTx sampleLedger
+  let updatedLedger = deleteById 3 sampleLedger
 
   putStrLn ""
-  putStrLn "Updated ledger:"
+  putStrLn "Ledger after deleting id 3:"
   mapM_ print updatedLedger
 
   let inc  = totalIncome updatedLedger
