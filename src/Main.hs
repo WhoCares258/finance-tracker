@@ -46,7 +46,7 @@ netBalance :: Ledger -> Double
 netBalance ts = totalIncome ts - totalExpense ts
 
 addTransaction :: Transaction -> Ledger -> Ledger
-addTransaction t ledger = ledger <> [t]
+addTransaction t ledger = ledger ++ [t]
 
 nextId :: Ledger -> Int
 nextId [] = 1
@@ -61,6 +61,9 @@ showTotals ledger = do
   let inc = totalIncome ledger
       exp = totalExpense ledger
       net = netBalance ledger
+  putStrLn "----------------------------------------"
+  putStrLn "Totals"
+  putStrLn "----------------------------------------"
   putStrLn $ "Total income:  " ++ show inc
   putStrLn $ "Total expense: " ++ show exp
   putStrLn $ "Net balance:   " ++ show net
@@ -79,7 +82,10 @@ readDouble prompt = do
 
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
+  putStrLn ""
+  putStrLn "----------------------------------------"
   putStrLn "Add new transaction"
+  putStrLn "----------------------------------------"
 
   putStrLn "Date (yyyy-mm-dd):"
   d <- getLine
@@ -90,42 +96,57 @@ addTransactionInteractive ledger = do
   putStrLn "Category (Food | Rent | Transport | Salary | Entertainment | Other):"
   catStr <- getLine
 
-  mAmount <- readDouble "Amount:"
   putStrLn "Description:"
   desc <- getLine
 
-  case (readMaybe kindStr :: Maybe TransactionKind,
-        readMaybe catStr  :: Maybe Category,
-        mAmount) of
+  mAmount <- readDouble "Amount:"
+
+  case ( readMaybe kindStr :: Maybe TransactionKind
+       , readMaybe catStr  :: Maybe Category
+       , mAmount
+       ) of
     (Just k, Just c, Just a) -> do
-      let newId = nextId ledger
-          t = Transaction newId d k c a desc
+      let newId   = nextId ledger
+          t       = Transaction newId d k c a desc
           updated = addTransaction t ledger
+      putStrLn ""
       putStrLn "Transaction added:"
       print t
       return updated
     _ -> do
+      putStrLn ""
       putStrLn "Invalid input. Transaction not added."
       return ledger
 
+printMenu :: IO ()
+printMenu = do
+  putStrLn ""
+  putStrLn "========================================"
+  putStrLn "WhoCares Personal Finance Tracker"
+  putStrLn "========================================"
+  putStrLn "1. View transactions"
+  putStrLn "2. Add transaction"
+  putStrLn "3. Delete transaction"
+  putStrLn "4. View totals"
+  putStrLn "0. Exit"
+  putStrLn "----------------------------------------"
+  putStrLn "Choose an option:"
+
 loop :: Ledger -> IO ()
 loop ledger = do
-  putStrLn ""
-  putStrLn "WhoCares Personal Finance Tracker"
-  putStrLn "1. View ledger"
-  putStrLn "2. View totals"
-  putStrLn "3. Delete transaction by id"
-  putStrLn "4. Add transaction"
-  putStrLn "0. Exit"
-  putStrLn "Choose an option:"
+  printMenu
   choice <- getLine
   case choice of
     "1" -> do
+      putStrLn ""
+      putStrLn "Current ledger:"
       mapM_ print ledger
       loop ledger
+
     "2" -> do
-      showTotals ledger
-      loop ledger
+      updated <- addTransactionInteractive ledger
+      loop updated
+
     "3" -> do
       mId <- readInt "Enter transaction id to delete:"
       case mId of
@@ -134,14 +155,18 @@ loop ledger = do
           loop ledger
         Just tid -> do
           let updated = deleteById tid ledger
+          putStrLn ""
           putStrLn "Updated ledger:"
           mapM_ print updated
           loop updated
+
     "4" -> do
-      updated <- addTransactionInteractive ledger
-      loop updated
+      showTotals ledger
+      loop ledger
+
     "0" ->
       putStrLn "Goodbye."
+
     _ -> do
       putStrLn "Invalid option."
       loop ledger
