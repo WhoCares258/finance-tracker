@@ -43,14 +43,24 @@ totalExpense ts =
 netBalance :: Ledger -> Double
 netBalance ts = totalIncome ts - totalExpense ts
 
+addTransaction :: Transaction -> Ledger -> Ledger
+addTransaction t ledger = ledger <> [t]
+
 main :: IO ()
 main = do
-  putStrLn "Ledger:"
+  putStrLn "Original ledger:"
   mapM_ print sampleLedger
 
-  let inc  = totalIncome sampleLedger
-      exp  = totalExpense sampleLedger
-      net  = netBalance sampleLedger
+  let newTx = Transaction 6 "2024-01-06" Expense Food 30 "Snacks"
+      updatedLedger = addTransaction newTx sampleLedger
+
+  putStrLn ""
+  putStrLn "Updated ledger:"
+  mapM_ print updatedLedger
+
+  let inc  = totalIncome updatedLedger
+      exp  = totalExpense updatedLedger
+      net  = netBalance updatedLedger
 
   putStrLn ""
   putStrLn $ "Total income:  " ++ show inc
