@@ -17,6 +17,12 @@ data Category
   | Transport
   | Salary
   | Entertainment
+  | Utilities
+  | Healthcare
+  | Education
+  | Shopping
+  | Investment
+  | Travel
   | Other
   deriving (Show, Eq, Read)
 
@@ -38,6 +44,8 @@ sampleLedger =
   , Transaction 3 "2024-01-03" Expense Rent          1500 "January Rent"
   , Transaction 4 "2024-01-04" Expense Transport      100 "Monthly Metro Card"
   , Transaction 5 "2024-01-05" Expense Entertainment   75 "Concert Ticket"
+  , Transaction 6 "2024-01-06" Expense Utilities      120 "Electricity Bill"
+  , Transaction 7 "2024-01-07" Expense Shopping       200 "New Clothes"
   ]
 
 pad :: Int -> String -> String
@@ -175,7 +183,7 @@ addTransactionInteractive ledger = do
   putStrLn "Kind (Income or Expense):"
   kindStr <- getLine
 
-  putStrLn "Category (Food | Rent | Transport | Salary | Entertainment | Other):"
+  putStrLn "Category (Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other):"
   catStr <- getLine
 
   putStrLn "Description:"
