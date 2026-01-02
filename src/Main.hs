@@ -46,12 +46,17 @@ netBalance ts = totalIncome ts - totalExpense ts
 addTransaction :: Transaction -> Ledger -> Ledger
 addTransaction t ledger = ledger <> [t]
 
+nextId :: Ledger -> Int
+nextId [] = 1
+nextId ts = maximum (map id ts) + 1
+
 main :: IO ()
 main = do
   putStrLn "Original ledger:"
   mapM_ print sampleLedger
 
-  let newTx = Transaction 6 "2024-01-06" Expense Food 30 "Snacks"
+  let newTxId = nextId sampleLedger
+      newTx   = Transaction newTxId "2024-01-06" Expense Food 30 "Snacks"
       updatedLedger = addTransaction newTx sampleLedger
 
   putStrLn ""
