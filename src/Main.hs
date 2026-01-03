@@ -13,10 +13,6 @@ import Text.Printf (printf)
 import Data.List (maximumBy)
 import Data.Ord  (comparing)
 
---------------------------------------------------------------------------------
--- Domain model
---------------------------------------------------------------------------------
-
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
 
@@ -57,10 +53,6 @@ sampleLedger =
   , Transaction 7 "07-01-2024" Expense Shopping       200 "New Clothes"
   ]
 
---------------------------------------------------------------------------------
--- Typeclass and validation type
---------------------------------------------------------------------------------
-
 class HasId a where
   getId :: a -> Int
 
@@ -85,10 +77,6 @@ instance Applicative ValidationResult where
 instance Monad ValidationResult where
   Ok a   >>= f = f a
   Error e >>= _ = Error e
-
---------------------------------------------------------------------------------
--- CSV instances
---------------------------------------------------------------------------------
 
 instance ToNamedRecord Transaction where
   toNamedRecord t =
@@ -115,10 +103,6 @@ instance DefaultOrdered Transaction where
   headerOrder _ =
     header ["Id", "Date", "Kind", "Category", "Amount", "Description"]
 
---------------------------------------------------------------------------------
--- Pure domain logic and analytics
---------------------------------------------------------------------------------
-
 totalIncome :: Ledger -> Double
 totalIncome ledger =
   sum [ amount t | t <- ledger, kind t == Income ]
@@ -130,9 +114,6 @@ totalExpense ledger =
 netBalance :: Ledger -> Double
 netBalance ledger =
   totalIncome ledger - totalExpense ledger
-
-transactionCount :: Ledger -> Int
-transactionCount = length
 
 highestExpense :: Ledger -> Maybe Transaction
 highestExpense ledger =
@@ -157,8 +138,6 @@ validateDelete tid xs =
     then Ok (deleteById tid xs)
     else Error "Id does not exist. Please try again."
 
--- running balances
-
 computeBalances :: Ledger -> [(Transaction, Double)]
 computeBalances ledger =
   reverse (snd (foldl step (0, []) ledger))
@@ -167,10 +146,6 @@ computeBalances ledger =
       let delta = if kind t == Income then amount t else negate (amount t)
           bal'  = bal + delta
       in (bal', (t, bal') : acc)
-
---------------------------------------------------------------------------------
--- Printing helpers
---------------------------------------------------------------------------------
 
 pad :: Int -> String -> String
 pad n s =
@@ -214,7 +189,7 @@ showTotals ledger = do
   let inc      = totalIncome ledger
       exps     = totalExpense ledger
       net      = netBalance ledger
-      count    = transactionCount ledger
+      count    = length ledger
       incomes  = filter (\t -> kind t == Income) ledger
       expenses = filter (\t -> kind t == Expense) ledger
       avgAmount xs =
@@ -246,10 +221,6 @@ showTotals ledger = do
       putStrLn $ "  Date:        " ++ date t
       putStrLn $ "  Category:    " ++ show (category t)
       putStrLn $ "  Description: " ++ description t
-
---------------------------------------------------------------------------------
--- Input helpers and validation
---------------------------------------------------------------------------------
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -344,10 +315,6 @@ promptRead label current = do
   case readMaybe input of
     Just val -> return val
     Nothing  -> return current
-
---------------------------------------------------------------------------------
--- Interactive operations
---------------------------------------------------------------------------------
 
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
@@ -506,10 +473,6 @@ viewTransactionsInteractive ledger = do
   putStrLn "Current ledger (with running balance):"
   printTableWithRunning ledger
 
---------------------------------------------------------------------------------
--- Persistence
---------------------------------------------------------------------------------
-
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -524,10 +487,6 @@ loadLedgerFromCsv = do
       case decodeByName bytes of
         Left _       -> return sampleLedger
         Right (_, v) -> return (V.toList v)
-
---------------------------------------------------------------------------------
--- Menu and main loop
---------------------------------------------------------------------------------
 
 printMenu :: IO ()
 printMenu = do
