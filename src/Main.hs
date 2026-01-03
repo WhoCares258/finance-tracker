@@ -358,6 +358,22 @@ editTransactionInteractive ledger = do
               putStrLn (showRow newT)
               return (updateTransaction newT ledger)
 
+viewByCategoryInteractive :: Ledger -> IO ()
+viewByCategoryInteractive ledger = do
+  putStrLn ""
+  putStrLn "----------------------------------------"
+  putStrLn "View by Category"
+  putStrLn "----------------------------------------"
+
+  c <- promptUntilValid ("Category (" ++ categoryListString ++ "):")
+                        "Invalid Category. Please choose from the list."
+
+  let filtered = filter (\t -> category t == c) ledger
+
+  putStrLn ""
+  putStrLn $ "Transactions for category: " ++ show c
+  printTable filtered
+
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -384,9 +400,10 @@ printMenu = do
   putStrLn "3. Edit transaction"
   putStrLn "4. Delete transaction"
   putStrLn "5. View totals"
+  putStrLn "6. View by category"
   putStrLn "0. Exit and save"
   putStrLn "----------------------------------------"
-  putStrLn "Please choose an option (0-5):"
+  putStrLn "Please choose an option (0-6):"
 
 loop :: Ledger -> IO Ledger
 loop ledger = do
@@ -415,12 +432,16 @@ loop ledger = do
       showTotals ledger
       loop ledger
 
+    "6" -> do
+      viewByCategoryInteractive ledger
+      loop ledger
+
     "0" -> do
       putStrLn "Saving your data and exiting. Goodbye."
       return ledger
 
     _ -> do
-      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 5.")
+      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 6.")
       loop ledger
 
 main :: IO ()
