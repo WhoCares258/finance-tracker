@@ -144,7 +144,7 @@ validateDelete :: HasId a => Int -> [a] -> ValidationResult [a]
 validateDelete tid xs =
   if any (\x -> getId x == tid) xs
     then Ok (deleteById tid xs)
-    else Error ("Id " ++ show tid ++ " does not exist. No changes were made.")
+    else Error "Id does not exist. Please try again."
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
@@ -224,6 +224,25 @@ addTransactionInteractive ledger = do
       putStrLn "Transaction was not added."
       return ledger
 
+deleteTransactionInteractive :: Ledger -> IO Ledger
+deleteTransactionInteractive ledger = do
+  mId <- readInt "Enter transaction id to delete:"
+  case mId of
+    Nothing -> do
+      putStrLn "Invalid id. Please enter a number."
+      deleteTransactionInteractive ledger
+    Just tid -> do
+      let result = validateDelete tid ledger
+      case result of
+        Error msg -> do
+          putStrLn msg
+          deleteTransactionInteractive ledger
+        Ok updated -> do
+          putStrLn ""
+          putStrLn "Updated ledger:"
+          printTable updated
+          return updated
+
 updateTransaction :: Transaction -> Ledger -> Ledger
 updateTransaction newT ledger =
   map (\t -> if transactionId t == transactionId newT then newT else t) ledger
@@ -233,18 +252,25 @@ promptFor label currentValue = do
   putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
   getLine
 
+promptRead :: (Read a, Show a) => String -> a -> IO a
+promptRead label current = do
+  input <- promptFor label (show current)
+  case readMaybe input of
+    Just val -> return val
+    Nothing  -> return current
+
 editTransactionInteractive :: Ledger -> IO Ledger
 editTransactionInteractive ledger = do
   mId <- readInt "Enter the transaction id you want to edit:"
   case mId of
     Nothing -> do
       putStrLn "Invalid id. Please enter a whole number such as 1 or 2."
-      return ledger
+      editTransactionInteractive ledger
     Just tid -> do
       case filter (\t -> transactionId t == tid) ledger of
         [] -> do
-          putStrLn ("Id " ++ show tid ++ " does not exist. No changes were made.")
-          return ledger
+          putStrLn "Id does not exist. Please try again."
+          editTransactionInteractive ledger
         (oldT:_) -> do
           putStrLn ""
           putStrLn "Editing transaction. Leave a field empty to keep its current value."
@@ -252,26 +278,13 @@ editTransactionInteractive ledger = do
           dInput <- promptFor "Date" (date oldT)
           let newDate = if null dInput then date oldT else dInput
 
-          kInput <- promptFor "Kind (Income/Expense)" (show (kind oldT))
-          let newKind =
-                case readMaybe kInput of
-                  Just k  -> k
-                  Nothing -> kind oldT
-
-          cInput <- promptFor "Category" (show (category oldT))
-          let newCategory =
-                case readMaybe cInput of
-                  Just c  -> c
-                  Nothing -> category oldT
+          newKind     <- promptRead "Kind (Income/Expense)" (kind oldT)
+          newCategory <- promptRead "Category"              (category oldT)
 
           descInput <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
 
-          aInput <- promptFor "Amount" (show (amount oldT))
-          let newAmount =
-                case readMaybe aInput of
-                  Just a  -> a
-                  Nothing -> amount oldT
+          newAmount   <- promptRead "Amount"                (amount oldT)
 
           let newT = oldT { date        = newDate
                           , kind        = newKind
@@ -338,22 +351,8 @@ loop ledger = do
       loop updated
 
     "4" -> do
-      mId <- readInt "Enter the transaction id you want to delete:"
-      case mId of
-        Nothing -> do
-          putStrLn "Invalid id. Please enter a whole number such as 1 or 2."
-          loop ledger
-        Just tid -> do
-          let result = validateDelete tid ledger
-          case result of
-            Error msg -> do
-              putStrLn msg
-              loop ledger
-            Ok updated -> do
-              putStrLn ""
-              putStrLn "Transaction deleted. Updated ledger:"
-              printTable updated
-              loop updated
+      updated <- deleteTransactionInteractive ledger
+      loop updated
 
     "5" -> do
       showTotals ledger
