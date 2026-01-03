@@ -7,7 +7,8 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 import Data.Csv
 import Control.Exception (try, IOException)
-import Data.Time (getCurrentTime, utctDay, formatTime, defaultTimeLocale)
+import Data.Time (getCurrentTime, utctDay, Day)
+import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
@@ -179,6 +180,68 @@ categoryListString :: String
 categoryListString =
   "Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other"
 
+validateDate :: String -> Maybe String
+validateDate s =
+  case parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day of
+    Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
+    Nothing  -> Nothing
+
+promptDateWithDefault :: String -> String -> IO String
+promptDateWithDefault label today = do
+  putStrLn $ label ++ " [Press Enter for today: " ++ today ++ "]:"
+  input <- getLine
+  if null input
+    then return today
+    else case validateDate input of
+      Just d  -> return d
+      Nothing -> do
+        putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+        promptDateWithDefault label today
+
+promptDateKeep :: String -> String -> IO String
+promptDateKeep label current = do
+  putStrLn $ label ++ " [" ++ current ++ "] (press Enter to keep):"
+  input <- getLine
+  if null input
+    then return current
+    else case validateDate input of
+      Just d  -> return d
+      Nothing -> do
+        putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+        promptDateKeep label current
+
+promptPositiveAmount :: String -> IO Double
+promptPositiveAmount label = do
+  putStrLn label
+  input <- getLine
+  case readMaybe input :: Maybe Double of
+    Nothing -> do
+      putStrLn "Invalid amount. Please enter a number (for example 100 or 99.50)."
+      promptPositiveAmount label
+    Just x ->
+      if x <= 0
+        then do
+          putStrLn "Amount must be greater than 0."
+          promptPositiveAmount label
+        else return x
+
+promptPositiveAmountKeep :: String -> Double -> IO Double
+promptPositiveAmountKeep label current = do
+  putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
+  input <- getLine
+  if null input
+    then return current
+    else case readMaybe input :: Maybe Double of
+      Nothing -> do
+        putStrLn "Invalid amount. Please enter a number (for example 100 or 99.50)."
+        promptPositiveAmountKeep label current
+      Just x ->
+        if x <= 0
+          then do
+            putStrLn "Amount must be greater than 0."
+            promptPositiveAmountKeep label current
+          else return x
+
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
   putStrLn ""
@@ -189,9 +252,7 @@ addTransactionInteractive ledger = do
   now <- getCurrentTime
   let today = formatTime defaultTimeLocale "%d-%m-%Y" (utctDay now)
 
-  putStrLn $ "Date (dd-mm-yyyy) [Press Enter for today: " ++ today ++ "]:"
-  dInput <- getLine
-  let d = if null dInput then today else dInput
+  d <- promptDateWithDefault "Date (dd-mm-yyyy)" today
 
   k <- promptUntilValid
          "Kind (Income or Expense):"
@@ -204,7 +265,7 @@ addTransactionInteractive ledger = do
   putStrLn "Description:"
   desc <- getLine
 
-  a <- promptUntilValid "Amount:" "Invalid amount. Please enter a number."
+  a <- promptPositiveAmount "Amount:"
 
   let newId   = nextId ledger
       t       = Transaction newId d k c a desc
@@ -268,16 +329,14 @@ editTransactionInteractive ledger = do
           putStrLn ""
           putStrLn "Editing transaction. Leave a field empty to keep its current value."
 
-          dInput <- promptFor "Date" (date oldT)
-          let newDate = if null dInput then date oldT else dInput
-
+          newDate     <- promptDateKeep "Date" (date oldT)
           newKind     <- promptRead "Kind (Income/Expense)" (kind oldT)
           newCategory <- promptRead "Category"              (category oldT)
 
           descInput <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
 
-          newAmount <- promptRead "Amount" (amount oldT)
+          newAmount   <- promptPositiveAmountKeep "Amount" (amount oldT)
 
           let newT = oldT { date        = newDate
                           , kind        = newKind
