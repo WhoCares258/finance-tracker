@@ -13,6 +13,8 @@ import Text.Printf (printf)
 import Data.List (maximumBy)
 import Data.Ord  (comparing)
 
+-- Domain types
+
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
 
@@ -53,11 +55,15 @@ sampleLedger =
   , Transaction 7 "07-01-2024" Expense Shopping       200 "New Clothes"
   ]
 
+-- Typeclass for id based operations
+
 class HasId a where
   getId :: a -> Int
 
 instance HasId Transaction where
   getId = transactionId
+
+-- Simple validation type with Monad support
 
 data ValidationResult a
   = Ok a
@@ -77,6 +83,8 @@ instance Applicative ValidationResult where
 instance Monad ValidationResult where
   Ok a   >>= f = f a
   Error e >>= _ = Error e
+
+-- CSV encoding and decoding
 
 instance ToNamedRecord Transaction where
   toNamedRecord t =
@@ -102,6 +110,8 @@ instance FromNamedRecord Transaction where
 instance DefaultOrdered Transaction where
   headerOrder _ =
     header ["Id", "Date", "Kind", "Category", "Amount", "Description"]
+
+-- Totals and analytics
 
 totalIncome :: Ledger -> Double
 totalIncome ledger =
@@ -138,6 +148,8 @@ validateDelete tid xs =
     then Ok (deleteById tid xs)
     else Error "Id does not exist. Please try again."
 
+-- Running balance computation
+
 computeBalances :: Ledger -> [(Transaction, Double)]
 computeBalances ledger =
   reverse (snd (foldl step (0, []) ledger))
@@ -146,6 +158,8 @@ computeBalances ledger =
       let delta = if kind t == Income then amount t else negate (amount t)
           bal'  = bal + delta
       in (bal', (t, bal') : acc)
+
+-- Simple formatting helpers
 
 pad :: Int -> String -> String
 pad n s =
@@ -169,6 +183,8 @@ showRowWithBalance (t, bal) =
   ++ pad 10 (printf "%.2f" (amount t)) ++ " | "
   ++ pad 10 (printf "%.2f" bal)   ++ " | "
   ++ description t
+
+-- Table printing
 
 printTable :: Ledger -> IO ()
 printTable ledger = do
@@ -221,6 +237,8 @@ showTotals ledger = do
       putStrLn $ "  Date:        " ++ date t
       putStrLn $ "  Category:    " ++ show (category t)
       putStrLn $ "  Description: " ++ description t
+
+-- Input helpers and validation
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -315,6 +333,8 @@ promptRead label current = do
   case readMaybe input of
     Just val -> return val
     Nothing  -> return current
+
+-- Interactive operations
 
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
@@ -473,6 +493,8 @@ viewTransactionsInteractive ledger = do
   putStrLn "Current ledger (with running balance):"
   printTableWithRunning ledger
 
+-- Persistence
+
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -487,6 +509,8 @@ loadLedgerFromCsv = do
       case decodeByName bytes of
         Left _       -> return sampleLedger
         Right (_, v) -> return (V.toList v)
+
+-- Menu and main loop
 
 printMenu :: IO ()
 printMenu = do
@@ -513,35 +537,27 @@ loop ledger = do
     "1" -> do
       viewTransactionsInteractive ledger
       loop ledger
-
     "2" -> do
       updated <- addTransactionInteractive ledger
       loop updated
-
     "3" -> do
       updated <- editTransactionInteractive ledger
       loop updated
-
     "4" -> do
       updated <- deleteTransactionInteractive ledger
       loop updated
-
     "5" -> do
       showTotals ledger
       loop ledger
-
     "6" -> do
       viewByCategoryInteractive ledger
       loop ledger
-
     "7" -> do
       viewCategoryDistribution ledger
       loop ledger
-
     "0" -> do
       putStrLn "Saving your data and exiting. Goodbye."
       return ledger
-
     _ -> do
       putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 7.")
       loop ledger
