@@ -188,11 +188,19 @@ validateDelete tid xs =
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
-  let inc    = totalIncome ledger
-      exps   = totalExpense ledger
-      net    = netBalance ledger
-      count  = transactionCount ledger
-      mHigh  = highestExpense ledger
+  let inc      = totalIncome ledger
+      exps     = totalExpense ledger
+      net      = netBalance ledger
+      count    = transactionCount ledger
+      incomes  = filter (\t -> kind t == Income) ledger
+      expenses = filter (\t -> kind t == Expense) ledger
+      avgAmount xs =
+        if null xs
+          then 0
+          else sum (map amount xs) / fromIntegral (length xs)
+      avgInc  = avgAmount incomes
+      avgExp  = avgAmount expenses
+      mHigh   = highestExpense ledger
 
   putStrLn "----------------------------------------"
   putStrLn "Account totals"
@@ -201,6 +209,8 @@ showTotals ledger = do
   putStrLn $ "Total income:           " ++ printf "%.2f" inc
   putStrLn $ "Total expenses:         " ++ printf "%.2f" exps
   putStrLn $ "Net balance:            " ++ printf "%.2f" net
+  putStrLn $ "Average income:         " ++ printf "%.2f" avgInc
+  putStrLn $ "Average expense:        " ++ printf "%.2f" avgExp
 
   case mHigh of
     Nothing -> do
@@ -239,7 +249,6 @@ validateDate s =
   case parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day of
     Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
     Nothing  -> Nothing
-
 
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
