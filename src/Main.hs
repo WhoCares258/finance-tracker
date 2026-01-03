@@ -10,6 +10,8 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
+import Data.List (maximumBy)
+import Data.Ord  (comparing)
 
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
@@ -132,6 +134,15 @@ totalExpense ts =
 netBalance :: Ledger -> Double
 netBalance ts = totalIncome ts - totalExpense ts
 
+transactionCount :: Ledger -> Int
+transactionCount = length
+
+highestExpense :: Ledger -> Maybe Transaction
+highestExpense ledger =
+  case filter (\t -> kind t == Expense) ledger of
+    []    -> Nothing
+    exps  -> Just (maximumBy (comparing amount) exps)
+
 addTransaction :: Transaction -> Ledger -> Ledger
 addTransaction t ledger = ledger ++ [t]
 
@@ -151,15 +162,31 @@ validateDelete tid xs =
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
-  let inc  = totalIncome ledger
-      exps = totalExpense ledger
-      net  = netBalance ledger
+  let inc    = totalIncome ledger
+      exps   = totalExpense ledger
+      net    = netBalance ledger
+      count  = transactionCount ledger
+      mHigh  = highestExpense ledger
+
   putStrLn "----------------------------------------"
   putStrLn "Account totals"
   putStrLn "----------------------------------------"
-  putStrLn $ "Total income:   " ++ show inc
-  putStrLn $ "Total expenses: " ++ show exps
-  putStrLn $ "Net balance:    " ++ show net
+  putStrLn $ "Number of transactions: " ++ show count
+  putStrLn $ "Total income:           " ++ printf "%.2f" inc
+  putStrLn $ "Total expenses:         " ++ printf "%.2f" exps
+  putStrLn $ "Net balance:            " ++ printf "%.2f" net
+
+  case mHigh of
+    Nothing -> do
+      putStrLn ""
+      putStrLn "Highest expense: none recorded yet."
+    Just t  -> do
+      putStrLn ""
+      putStrLn "Highest expense:"
+      putStrLn $ "  Amount:      " ++ printf "%.2f" (amount t)
+      putStrLn $ "  Date:        " ++ date t
+      putStrLn $ "  Category:    " ++ show (category t)
+      putStrLn $ "  Description: " ++ description t
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -399,7 +426,9 @@ viewCategoryDistribution ledger = do
           if s > 0
             then do
               let pct = if total > 0 then (s / total) * 100 else 0
-              putStrLn $ pad 15 (show c) ++ " | " ++ pad 10 (printf "%.2f" s) ++ " | " ++ printf "%.1f%%" pct
+              putStrLn $ pad 15 (show c) ++ " | "
+                         ++ pad 10 (printf "%.2f" s) ++ " | "
+                         ++ printf "%.1f%%" pct
             else return ()
           ) allCats
         putStrLn "----------------------------------------"
