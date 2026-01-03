@@ -293,13 +293,19 @@ editTransactionInteractive ledger = do
                           , amount      = newAmount
                           }
 
-          putStrLn ""
-          putStrLn "Transaction updated successfully:"
-          putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
-          putStrLn "-----------------------------------------------------------------------"
-          putStrLn (showRow newT)
+          if newT == oldT
+            then do
+              putStrLn ""
+              putStrLn "No changes made."
+              return ledger
+            else do
+              putStrLn ""
+              putStrLn "Transaction updated successfully:"
+              putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+              putStrLn "-----------------------------------------------------------------------"
+              putStrLn (showRow newT)
 
-          return (updateTransaction newT ledger)
+              return (updateTransaction newT ledger)
 
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
