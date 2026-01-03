@@ -10,7 +10,7 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
-import Data.List (maximumBy)
+import Data.List (maximumBy, sortBy)
 import Data.Ord  (comparing)
 
 data TransactionKind = Income | Expense
@@ -72,6 +72,34 @@ printTable ledger = do
   putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
   putStrLn "-----------------------------------------------------------------------"
   mapM_ (putStrLn . showRow) ledger
+
+-- running balance helpers
+
+computeBalances :: Ledger -> [(Transaction, Double)]
+computeBalances ledger =
+  reverse (snd (foldl step (0, []) ledger))
+  where
+    step (bal, acc) t =
+      let delta = if kind t == Income then amount t else negate (amount t)
+          bal'  = bal + delta
+      in (bal', (t, bal') : acc)
+
+showRowWithBalance :: (Transaction, Double) -> String
+showRowWithBalance (t, bal) =
+  pad 4  (show (transactionId t)) ++ " | "
+  ++ pad 10 (date t)              ++ " | "
+  ++ pad 8  (show (kind t))       ++ " | "
+  ++ pad 13 (show (category t))   ++ " | "
+  ++ pad 10 (printf "%.2f" (amount t)) ++ " | "
+  ++ pad 10 (printf "%.2f" bal)   ++ " | "
+  ++ description t
+
+printTableWithRunning :: Ledger -> IO ()
+printTableWithRunning ledger = do
+  putStrLn ""
+  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Balance    | Description"
+  putStrLn "-------------------------------------------------------------------------------"
+  mapM_ (putStrLn . showRowWithBalance) (computeBalances ledger)
 
 class HasId a where
   getId :: a -> Int
