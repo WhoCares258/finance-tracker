@@ -10,7 +10,7 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
-import Data.List (maximumBy, sortBy)
+import Data.List (maximumBy)
 import Data.Ord  (comparing)
 
 data TransactionKind = Income | Expense
@@ -240,15 +240,6 @@ validateDate s =
     Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
     Nothing  -> Nothing
 
-parseDay :: String -> Maybe Day
-parseDay s =
-  parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day
-
-compareByDate :: Transaction -> Transaction -> Ordering
-compareByDate t1 t2 =
-  case (parseDay (date t1), parseDay (date t2)) of
-    (Just d1, Just d2) -> compare d1 d2
-    _                  -> compare (date t1) (date t2)
 
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
@@ -476,20 +467,8 @@ viewCategoryDistribution ledger = do
 viewTransactionsInteractive :: Ledger -> IO ()
 viewTransactionsInteractive ledger = do
   putStrLn ""
-  putStrLn "View transactions"
-  putStrLn "1. Sort by ID"
-  putStrLn "2. Sort by Date"
-  putStrLn "3. Original order"
-  putStrLn "Choose sorting option (1-3):"
-  sortChoice <- getLine
-  let sortedLedger =
-        case sortChoice of
-          "1" -> sortBy (comparing transactionId) ledger
-          "2" -> sortBy compareByDate ledger
-          _   -> ledger
-  putStrLn ""
   putStrLn "Current ledger (with running balance):"
-  printTableWithRunning sortedLedger
+  printTableWithRunning ledger
 
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
