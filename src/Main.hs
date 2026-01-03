@@ -242,6 +242,16 @@ validateDate s =
     Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
     Nothing  -> Nothing
 
+parseDay :: String -> Maybe Day
+parseDay s =
+  parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day
+
+compareByDate :: Transaction -> Transaction -> Ordering
+compareByDate t1 t2 =
+  case (parseDay (date t1), parseDay (date t2)) of
+    (Just d1, Just d2) -> compare d1 d2
+    _                  -> compare (date t1) (date t2)
+
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
   putStrLn $ label ++ " [Press Enter for today: " ++ today ++ "]:"
