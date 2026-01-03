@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 import Data.Csv
 import Control.Exception (try, IOException)
+import Data.Time (getCurrentTime, utctDay, formatTime, defaultTimeLocale)
 
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
@@ -39,13 +40,13 @@ type Ledger = [Transaction]
 
 sampleLedger :: Ledger
 sampleLedger =
-  [ Transaction 1 "2024-01-01" Income  Salary        5000 "Monthly Salary"
-  , Transaction 2 "2024-01-02" Expense Food            50 "Groceries"
-  , Transaction 3 "2024-01-03" Expense Rent          1500 "January Rent"
-  , Transaction 4 "2024-01-04" Expense Transport      100 "Monthly Metro Card"
-  , Transaction 5 "2024-01-05" Expense Entertainment   75 "Concert Ticket"
-  , Transaction 6 "2024-01-06" Expense Utilities      120 "Electricity Bill"
-  , Transaction 7 "2024-01-07" Expense Shopping       200 "New Clothes"
+  [ Transaction 1 "01-01-2024" Income  Salary        5000 "Monthly Salary"
+  , Transaction 2 "02-01-2024" Expense Food            50 "Groceries"
+  , Transaction 3 "03-01-2024" Expense Rent          1500 "January Rent"
+  , Transaction 4 "04-01-2024" Expense Transport      100 "Monthly Metro Card"
+  , Transaction 5 "05-01-2024" Expense Entertainment   75 "Concert Ticket"
+  , Transaction 6 "06-01-2024" Expense Utilities      120 "Electricity Bill"
+  , Transaction 7 "07-01-2024" Expense Shopping       200 "New Clothes"
   ]
 
 pad :: Int -> String -> String
@@ -80,18 +81,18 @@ data ValidationResult a
   deriving (Show, Eq)
 
 instance Functor ValidationResult where
-  fmap f (Ok a)     = Ok (f a)
-  fmap _ (Error e)  = Error e
+  fmap f (Ok a)    = Ok (f a)
+  fmap _ (Error e) = Error e
 
 instance Applicative ValidationResult where
   pure = Ok
-  Ok f <*> Ok a     = Ok (f a)
-  Error e <*> _     = Error e
-  _ <*> Error e     = Error e
+  Ok f <*> Ok a    = Ok (f a)
+  Error e <*> _    = Error e
+  _ <*> Error e    = Error e
 
 instance Monad ValidationResult where
-  Ok a >>= f        = f a
-  Error e >>= _     = Error e
+  Ok a >>= f       = f a
+  Error e >>= _    = Error e
 
 instance ToNamedRecord Transaction where
   toNamedRecord t =
@@ -164,11 +165,19 @@ readInt prompt = do
   input <- getLine
   return (readMaybe input)
 
-readDouble :: String -> IO (Maybe Double)
-readDouble prompt = do
+promptUntilValid :: Read a => String -> String -> IO a
+promptUntilValid prompt errorMessage = do
   putStrLn prompt
   input <- getLine
-  return (readMaybe input)
+  case readMaybe input of
+    Just val -> return val
+    Nothing  -> do
+      putStrLn errorMessage
+      promptUntilValid prompt errorMessage
+
+categoryListString :: String
+categoryListString =
+  "Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other"
 
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
@@ -177,52 +186,36 @@ addTransactionInteractive ledger = do
   putStrLn "Add new transaction"
   putStrLn "----------------------------------------"
 
-  putStrLn "Date (yyyy-mm-dd):"
-  d <- getLine
+  now <- getCurrentTime
+  let today = formatTime defaultTimeLocale "%d-%m-%Y" (utctDay now)
 
-  putStrLn "Kind (type exactly: Income or Expense):"
-  kindStr <- getLine
+  putStrLn $ "Date (dd-mm-yyyy) [Press Enter for today: " ++ today ++ "]:"
+  dInput <- getLine
+  let d = if null dInput then today else dInput
 
-  putStrLn "Category (one of: Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other):"
-  catStr <- getLine
+  k <- promptUntilValid
+         "Kind (Income or Expense):"
+         "Invalid kind. Please enter \"Income\" or \"Expense\"."
+
+  c <- promptUntilValid
+         ("Category (" ++ categoryListString ++ "):")
+         "Invalid category. Please choose from the list."
 
   putStrLn "Description:"
   desc <- getLine
 
-  mAmount <- readDouble "Amount (numbers only, e.g. 123.45):"
+  a <- promptUntilValid "Amount:" "Invalid amount. Please enter a number."
 
-  let mKind = readMaybe kindStr :: Maybe TransactionKind
-  let mCat  = readMaybe catStr  :: Maybe Category
+  let newId   = nextId ledger
+      t       = Transaction newId d k c a desc
+      updated = addTransaction t ledger
 
-  case (mKind, mCat, mAmount) of
-    (Just k, Just c, Just a) -> do
-      let newId   = nextId ledger
-          t       = Transaction newId d k c a desc
-          updated = addTransaction t ledger
-      putStrLn ""
-      putStrLn "Transaction added successfully:"
-      putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
-      putStrLn "-----------------------------------------------------------------------"
-      putStrLn (showRow t)
-      return updated
-
-    (Nothing, _, _) -> do
-      putStrLn ""
-      putStrLn ("Invalid kind: \"" ++ kindStr ++ "\". Please type exactly \"Income\" or \"Expense\".")
-      putStrLn "Transaction was not added. Please try again from the menu."
-      return ledger
-
-    (_, Nothing, _) -> do
-      putStrLn ""
-      putStrLn ("Invalid category: \"" ++ catStr ++ "\".")
-      putStrLn "Please choose one of the listed categories. Transaction was not added."
-      return ledger
-
-    (_, _, Nothing) -> do
-      putStrLn ""
-      putStrLn "Invalid amount. Please enter a numeric value such as 100 or 99.50."
-      putStrLn "Transaction was not added."
-      return ledger
+  putStrLn ""
+  putStrLn "Transaction added successfully:"
+  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+  putStrLn "-----------------------------------------------------------------------"
+  putStrLn (showRow t)
+  return updated
 
 deleteTransactionInteractive :: Ledger -> IO Ledger
 deleteTransactionInteractive ledger = do
@@ -284,7 +277,7 @@ editTransactionInteractive ledger = do
           descInput <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
 
-          newAmount   <- promptRead "Amount"                (amount oldT)
+          newAmount <- promptRead "Amount" (amount oldT)
 
           let newT = oldT { date        = newDate
                           , kind        = newKind
@@ -304,7 +297,6 @@ editTransactionInteractive ledger = do
               putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
               putStrLn "-----------------------------------------------------------------------"
               putStrLn (showRow newT)
-
               return (updateTransaction newT ledger)
 
 saveLedgerToCsv :: Ledger -> IO ()
@@ -319,8 +311,8 @@ loadLedgerFromCsv = do
     Left _ -> return sampleLedger
     Right bytes ->
       case decodeByName bytes of
-        Left _        -> return sampleLedger
-        Right (_, v)  -> return (V.toList v)
+        Left _       -> return sampleLedger
+        Right (_, v) -> return (V.toList v)
 
 printMenu :: IO ()
 printMenu = do

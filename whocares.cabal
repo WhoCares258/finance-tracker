@@ -21,6 +21,7 @@ executable whocares
                      , cassava
                      , vector
                      , bytestring
+                     , time
   ghc-options:         -Wall
                        -Wcompat
                        -Widentities
