@@ -9,6 +9,7 @@ import Data.Csv
 import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
+import Text.Printf (printf)
 
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
@@ -26,7 +27,7 @@ data Category
   | Investment
   | Travel
   | Other
-  deriving (Show, Eq, Read)
+  deriving (Show, Eq, Read, Enum, Bounded)
 
 data Transaction = Transaction
   { transactionId :: Int
@@ -374,6 +375,39 @@ viewByCategoryInteractive ledger = do
   putStrLn $ "Transactions for category: " ++ show c
   printTable filtered
 
+viewCategoryDistribution :: Ledger -> IO ()
+viewCategoryDistribution ledger = do
+  let expenses = filter (\t -> kind t == Expense) ledger
+      incomes  = filter (\t -> kind t == Income) ledger
+      totalExp = sum (map amount expenses)
+      totalInc = sum (map amount incomes)
+      allCats  = [minBound .. maxBound] :: [Category]
+
+      calcSum :: [Transaction] -> Category -> Double
+      calcSum ts c = sum [amount t | t <- ts, category t == c]
+
+      printDist :: String -> Double -> [Transaction] -> IO ()
+      printDist title total ts = do
+        putStrLn ""
+        putStrLn "----------------------------------------"
+        putStrLn $ title ++ " Distribution"
+        putStrLn "----------------------------------------"
+        putStrLn "Category        | Amount     | %"
+        putStrLn "----------------------------------------"
+        mapM_ (\c -> do
+          let s = calcSum ts c
+          if s > 0
+            then do
+              let pct = if total > 0 then (s / total) * 100 else 0
+              putStrLn $ pad 15 (show c) ++ " | " ++ pad 10 (printf "%.2f" s) ++ " | " ++ printf "%.1f%%" pct
+            else return ()
+          ) allCats
+        putStrLn "----------------------------------------"
+        putStrLn $ "Total:          " ++ printf "%.2f" total
+
+  printDist "Expense" totalExp expenses
+  printDist "Income"  totalInc incomes
+
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -401,9 +435,10 @@ printMenu = do
   putStrLn "4. Delete transaction"
   putStrLn "5. View totals"
   putStrLn "6. View by category"
+  putStrLn "7. View category distribution"
   putStrLn "0. Exit and save"
   putStrLn "----------------------------------------"
-  putStrLn "Please choose an option (0-6):"
+  putStrLn "Please choose an option (0-7):"
 
 loop :: Ledger -> IO Ledger
 loop ledger = do
@@ -436,12 +471,16 @@ loop ledger = do
       viewByCategoryInteractive ledger
       loop ledger
 
+    "7" -> do
+      viewCategoryDistribution ledger
+      loop ledger
+
     "0" -> do
       putStrLn "Saving your data and exiting. Goodbye."
       return ledger
 
     _ -> do
-      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 6.")
+      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 7.")
       loop ledger
 
 main :: IO ()
