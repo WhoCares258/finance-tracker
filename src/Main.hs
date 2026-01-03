@@ -475,6 +475,24 @@ viewCategoryDistribution ledger = do
   printDist "Expense" totalExp expenses
   printDist "Income"  totalInc incomes
 
+viewTransactionsInteractive :: Ledger -> IO ()
+viewTransactionsInteractive ledger = do
+  putStrLn ""
+  putStrLn "View transactions"
+  putStrLn "1. Sort by ID"
+  putStrLn "2. Sort by Date"
+  putStrLn "3. Original order"
+  putStrLn "Choose sorting option (1-3):"
+  sortChoice <- getLine
+  let sortedLedger =
+        case sortChoice of
+          "1" -> sortBy (comparing transactionId) ledger
+          "2" -> sortBy compareByDate ledger
+          _   -> ledger
+  putStrLn ""
+  putStrLn "Current ledger (with running balance):"
+  printTableWithRunning sortedLedger
+
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -513,9 +531,7 @@ loop ledger = do
   choice <- getLine
   case choice of
     "1" -> do
-      putStrLn ""
-      putStrLn "Current ledger:"
-      printTable ledger
+      viewTransactionsInteractive ledger
       loop ledger
 
     "2" -> do
