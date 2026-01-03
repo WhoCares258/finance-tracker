@@ -13,6 +13,10 @@ import Text.Printf (printf)
 import Data.List (maximumBy)
 import Data.Ord  (comparing)
 
+--------------------------------------------------------------------------------
+-- Domain model
+--------------------------------------------------------------------------------
+
 data TransactionKind = Income | Expense
   deriving (Show, Eq, Read)
 
@@ -53,51 +57,9 @@ sampleLedger =
   , Transaction 7 "07-01-2024" Expense Shopping       200 "New Clothes"
   ]
 
-pad :: Int -> String -> String
-pad n s =
-  take n (s ++ repeat ' ')
-
-showRow :: Transaction -> String
-showRow t =
-  pad 4  (show (transactionId t)) ++ " | "
-  ++ pad 10 (date t)              ++ " | "
-  ++ pad 8  (show (kind t))       ++ " | "
-  ++ pad 13 (show (category t))   ++ " | "
-  ++ pad 10 (show (amount t))     ++ " | "
-  ++ description t
-
-printTable :: Ledger -> IO ()
-printTable ledger = do
-  putStrLn ""
-  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
-  putStrLn "-----------------------------------------------------------------------"
-  mapM_ (putStrLn . showRow) ledger
-
-computeBalances :: Ledger -> [(Transaction, Double)]
-computeBalances ledger =
-  reverse (snd (foldl step (0, []) ledger))
-  where
-    step (bal, acc) t =
-      let delta = if kind t == Income then amount t else negate (amount t)
-          bal'  = bal + delta
-      in (bal', (t, bal') : acc)
-
-showRowWithBalance :: (Transaction, Double) -> String
-showRowWithBalance (t, bal) =
-  pad 4  (show (transactionId t)) ++ " | "
-  ++ pad 10 (date t)              ++ " | "
-  ++ pad 8  (show (kind t))       ++ " | "
-  ++ pad 13 (show (category t))   ++ " | "
-  ++ pad 10 (printf "%.2f" (amount t)) ++ " | "
-  ++ pad 10 (printf "%.2f" bal)   ++ " | "
-  ++ description t
-
-printTableWithRunning :: Ledger -> IO ()
-printTableWithRunning ledger = do
-  putStrLn ""
-  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Balance    | Description"
-  putStrLn "-------------------------------------------------------------------------------"
-  mapM_ (putStrLn . showRowWithBalance) (computeBalances ledger)
+--------------------------------------------------------------------------------
+-- Typeclass and validation type
+--------------------------------------------------------------------------------
 
 class HasId a where
   getId :: a -> Int
@@ -121,8 +83,12 @@ instance Applicative ValidationResult where
   _ <*> Error e    = Error e
 
 instance Monad ValidationResult where
-  Ok a >>= f       = f a
-  Error e >>= _    = Error e
+  Ok a   >>= f = f a
+  Error e >>= _ = Error e
+
+--------------------------------------------------------------------------------
+-- CSV instances
+--------------------------------------------------------------------------------
 
 instance ToNamedRecord Transaction where
   toNamedRecord t =
@@ -149,16 +115,21 @@ instance DefaultOrdered Transaction where
   headerOrder _ =
     header ["Id", "Date", "Kind", "Category", "Amount", "Description"]
 
+--------------------------------------------------------------------------------
+-- Pure domain logic and analytics
+--------------------------------------------------------------------------------
+
 totalIncome :: Ledger -> Double
-totalIncome ts =
-  sum [ amount t | t <- ts, kind t == Income ]
+totalIncome ledger =
+  sum [ amount t | t <- ledger, kind t == Income ]
 
 totalExpense :: Ledger -> Double
-totalExpense ts =
-  sum [ amount t | t <- ts, kind t == Expense ]
+totalExpense ledger =
+  sum [ amount t | t <- ledger, kind t == Expense ]
 
 netBalance :: Ledger -> Double
-netBalance ts = totalIncome ts - totalExpense ts
+netBalance ledger =
+  totalIncome ledger - totalExpense ledger
 
 transactionCount :: Ledger -> Int
 transactionCount = length
@@ -174,7 +145,7 @@ addTransaction t ledger = ledger ++ [t]
 
 nextId :: Ledger -> Int
 nextId [] = 1
-nextId ts = maximum (map transactionId ts) + 1
+nextId ledger = maximum (map transactionId ledger) + 1
 
 deleteById :: HasId a => Int -> [a] -> [a]
 deleteById tid xs =
@@ -185,6 +156,58 @@ validateDelete tid xs =
   if any (\x -> getId x == tid) xs
     then Ok (deleteById tid xs)
     else Error "Id does not exist. Please try again."
+
+-- running balances
+
+computeBalances :: Ledger -> [(Transaction, Double)]
+computeBalances ledger =
+  reverse (snd (foldl step (0, []) ledger))
+  where
+    step (bal, acc) t =
+      let delta = if kind t == Income then amount t else negate (amount t)
+          bal'  = bal + delta
+      in (bal', (t, bal') : acc)
+
+--------------------------------------------------------------------------------
+-- Printing helpers
+--------------------------------------------------------------------------------
+
+pad :: Int -> String -> String
+pad n s =
+  take n (s ++ repeat ' ')
+
+showRow :: Transaction -> String
+showRow t =
+  pad 4  (show (transactionId t)) ++ " | "
+  ++ pad 10 (date t)              ++ " | "
+  ++ pad 8  (show (kind t))       ++ " | "
+  ++ pad 13 (show (category t))   ++ " | "
+  ++ pad 10 (show (amount t))     ++ " | "
+  ++ description t
+
+showRowWithBalance :: (Transaction, Double) -> String
+showRowWithBalance (t, bal) =
+  pad 4  (show (transactionId t)) ++ " | "
+  ++ pad 10 (date t)              ++ " | "
+  ++ pad 8  (show (kind t))       ++ " | "
+  ++ pad 13 (show (category t))   ++ " | "
+  ++ pad 10 (printf "%.2f" (amount t)) ++ " | "
+  ++ pad 10 (printf "%.2f" bal)   ++ " | "
+  ++ description t
+
+printTable :: Ledger -> IO ()
+printTable ledger = do
+  putStrLn ""
+  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
+  putStrLn "-----------------------------------------------------------------------"
+  mapM_ (putStrLn . showRow) ledger
+
+printTableWithRunning :: Ledger -> IO ()
+printTableWithRunning ledger = do
+  putStrLn ""
+  putStrLn "ID   | Date       | Kind     | Category      | Amount     | Balance    | Description"
+  putStrLn "-------------------------------------------------------------------------------"
+  mapM_ (putStrLn . showRowWithBalance) (computeBalances ledger)
 
 showTotals :: Ledger -> IO ()
 showTotals ledger = do
@@ -223,6 +246,10 @@ showTotals ledger = do
       putStrLn $ "  Date:        " ++ date t
       putStrLn $ "  Category:    " ++ show (category t)
       putStrLn $ "  Description: " ++ description t
+
+--------------------------------------------------------------------------------
+-- Input helpers and validation
+--------------------------------------------------------------------------------
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -306,6 +333,22 @@ promptPositiveAmountKeep label current = do
             promptPositiveAmountKeep label current
           else return x
 
+promptFor :: String -> String -> IO String
+promptFor label currentValue = do
+  putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
+  getLine
+
+promptRead :: (Read a, Show a) => String -> a -> IO a
+promptRead label current = do
+  input <- promptFor label (show current)
+  case readMaybe input of
+    Just val -> return val
+    Nothing  -> return current
+
+--------------------------------------------------------------------------------
+-- Interactive operations
+--------------------------------------------------------------------------------
+
 addTransactionInteractive :: Ledger -> IO Ledger
 addTransactionInteractive ledger = do
   putStrLn ""
@@ -342,41 +385,6 @@ addTransactionInteractive ledger = do
   putStrLn (showRow t)
   return updated
 
-deleteTransactionInteractive :: Ledger -> IO Ledger
-deleteTransactionInteractive ledger = do
-  mId <- readInt "Enter transaction id to delete:"
-  case mId of
-    Nothing -> do
-      putStrLn "Invalid id. Please enter a number."
-      deleteTransactionInteractive ledger
-    Just tid -> do
-      let result = validateDelete tid ledger
-      case result of
-        Error msg -> do
-          putStrLn msg
-          deleteTransactionInteractive ledger
-        Ok updated -> do
-          putStrLn ""
-          putStrLn "Updated ledger:"
-          printTable updated
-          return updated
-
-updateTransaction :: Transaction -> Ledger -> Ledger
-updateTransaction newT ledger =
-  map (\t -> if transactionId t == transactionId newT then newT else t) ledger
-
-promptFor :: String -> String -> IO String
-promptFor label currentValue = do
-  putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
-  getLine
-
-promptRead :: (Read a, Show a) => String -> a -> IO a
-promptRead label current = do
-  input <- promptFor label (show current)
-  case readMaybe input of
-    Just val -> return val
-    Nothing  -> return current
-
 editTransactionInteractive :: Ledger -> IO Ledger
 editTransactionInteractive ledger = do
   mId <- readInt "Enter the transaction id you want to edit:"
@@ -400,7 +408,7 @@ editTransactionInteractive ledger = do
           descInput <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
 
-          newAmount   <- promptPositiveAmountKeep "Amount" (amount oldT)
+          newAmount <- promptPositiveAmountKeep "Amount" (amount oldT)
 
           let newT = oldT { date        = newDate
                           , kind        = newKind
@@ -421,6 +429,25 @@ editTransactionInteractive ledger = do
               putStrLn "-----------------------------------------------------------------------"
               putStrLn (showRow newT)
               return (updateTransaction newT ledger)
+
+deleteTransactionInteractive :: Ledger -> IO Ledger
+deleteTransactionInteractive ledger = do
+  mId <- readInt "Enter transaction id to delete:"
+  case mId of
+    Nothing -> do
+      putStrLn "Invalid id. Please enter a number."
+      deleteTransactionInteractive ledger
+    Just tid -> do
+      let result = validateDelete tid ledger
+      case result of
+        Error msg -> do
+          putStrLn msg
+          deleteTransactionInteractive ledger
+        Ok updated -> do
+          putStrLn ""
+          putStrLn "Updated ledger:"
+          printTable updated
+          return updated
 
 viewByCategoryInteractive :: Ledger -> IO ()
 viewByCategoryInteractive ledger = do
@@ -479,6 +506,10 @@ viewTransactionsInteractive ledger = do
   putStrLn "Current ledger (with running balance):"
   printTableWithRunning ledger
 
+--------------------------------------------------------------------------------
+-- Persistence
+--------------------------------------------------------------------------------
+
 saveLedgerToCsv :: Ledger -> IO ()
 saveLedgerToCsv ledger = do
   let bytes = encodeDefaultOrderedByName ledger
@@ -493,6 +524,10 @@ loadLedgerFromCsv = do
       case decodeByName bytes of
         Left _       -> return sampleLedger
         Right (_, v) -> return (V.toList v)
+
+--------------------------------------------------------------------------------
+-- Menu and main loop
+--------------------------------------------------------------------------------
 
 printMenu :: IO ()
 printMenu = do
