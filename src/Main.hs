@@ -1,165 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{- |
+Module      : Main
+Description : WhoCares Personal Finance Tracker Entry Point
+Copyright   : (c) Student, 2024
+License     : AllRightsReserved
+
+This module handles the User Interface (UI) and interaction logic.
+It utilizes the 'Ledger' module for core data types and business logic.
+Key features:
+  * Command-line menu navigation
+  * Interactive data entry with validation
+  * Reporting and visualization of financial data
+-}
+
 module Main (main) where
 
 import Text.Read (readMaybe)
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Vector as V
-import Data.Csv
-import Control.Exception (try, IOException)
-import Data.Time (getCurrentTime, utctDay, Day)
-import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
+import Data.Time (getCurrentTime, utctDay)
+import Data.Time.Format (formatTime, defaultTimeLocale)
 import Text.Printf (printf)
-import Data.List (maximumBy)
-import Data.Ord  (comparing)
 
--- Domain types
+import Ledger
 
-data TransactionKind = Income | Expense
-  deriving (Show, Eq, Read)
-
-data Category
-  = Food
-  | Rent
-  | Transport
-  | Salary
-  | Entertainment
-  | Utilities
-  | Healthcare
-  | Education
-  | Shopping
-  | Investment
-  | Travel
-  | Other
-  deriving (Show, Eq, Read, Enum, Bounded)
-
-data Transaction = Transaction
-  { transactionId :: Int
-  , date          :: String
-  , kind          :: TransactionKind
-  , category      :: Category
-  , amount        :: Double
-  , description   :: String
-  } deriving (Show, Eq)
-
-type Ledger = [Transaction]
-
-sampleLedger :: Ledger
-sampleLedger =
-  [ Transaction 1 "01-01-2024" Income  Salary        5000 "Monthly Salary"
-  , Transaction 2 "02-01-2024" Expense Food            50 "Groceries"
-  , Transaction 3 "03-01-2024" Expense Rent          1500 "January Rent"
-  , Transaction 4 "04-01-2024" Expense Transport      100 "Monthly Metro Card"
-  , Transaction 5 "05-01-2024" Expense Entertainment   75 "Concert Ticket"
-  , Transaction 6 "06-01-2024" Expense Utilities      120 "Electricity Bill"
-  , Transaction 7 "07-01-2024" Expense Shopping       200 "New Clothes"
-  ]
-
--- Typeclass for id based operations
-
-class HasId a where
-  getId :: a -> Int
-
-instance HasId Transaction where
-  getId = transactionId
-
--- Simple validation type with Monad support
-
-data ValidationResult a
-  = Ok a
-  | Error String
-  deriving (Show, Eq)
-
-instance Functor ValidationResult where
-  fmap f (Ok a)    = Ok (f a)
-  fmap _ (Error e) = Error e
-
-instance Applicative ValidationResult where
-  pure = Ok
-  Ok f <*> Ok a    = Ok (f a)
-  Error e <*> _    = Error e
-  _ <*> Error e    = Error e
-
-instance Monad ValidationResult where
-  Ok a   >>= f = f a
-  Error e >>= _ = Error e
-
--- CSV encoding and decoding
-
-instance ToNamedRecord Transaction where
-  toNamedRecord t =
-    namedRecord
-      [ "Id"          .= transactionId t
-      , "Date"        .= date t
-      , "Kind"        .= show (kind t)
-      , "Category"    .= show (category t)
-      , "Amount"      .= amount t
-      , "Description" .= description t
-      ]
-
-instance FromNamedRecord Transaction where
-  parseNamedRecord m =
-    Transaction
-      <$> m .: "Id"
-      <*> m .: "Date"
-      <*> (read <$> m .: "Kind")
-      <*> (read <$> m .: "Category")
-      <*> m .: "Amount"
-      <*> m .: "Description"
-
-instance DefaultOrdered Transaction where
-  headerOrder _ =
-    header ["Id", "Date", "Kind", "Category", "Amount", "Description"]
-
--- Totals and analytics
-
-totalIncome :: Ledger -> Double
-totalIncome ledger =
-  sum [ amount t | t <- ledger, kind t == Income ]
-
-totalExpense :: Ledger -> Double
-totalExpense ledger =
-  sum [ amount t | t <- ledger, kind t == Expense ]
-
-netBalance :: Ledger -> Double
-netBalance ledger =
-  totalIncome ledger - totalExpense ledger
-
-highestExpense :: Ledger -> Maybe Transaction
-highestExpense ledger =
-  case filter (\t -> kind t == Expense) ledger of
-    []    -> Nothing
-    exps  -> Just (maximumBy (comparing amount) exps)
-
-addTransaction :: Transaction -> Ledger -> Ledger
-addTransaction t ledger = ledger ++ [t]
-
-nextId :: Ledger -> Int
-nextId [] = 1
-nextId ledger = maximum (map transactionId ledger) + 1
-
-deleteById :: HasId a => Int -> [a] -> [a]
-deleteById tid xs =
-  filter (\x -> getId x /= tid) xs
-
-validateDelete :: HasId a => Int -> [a] -> ValidationResult [a]
-validateDelete tid xs =
-  if any (\x -> getId x == tid) xs
-    then Ok (deleteById tid xs)
-    else Error "Id does not exist. Please try again."
-
--- Running balance computation
-
-computeBalances :: Ledger -> [(Transaction, Double)]
-computeBalances ledger =
-  reverse (snd (foldl step (0, []) ledger))
-  where
-    step (bal, acc) t =
-      let delta = if kind t == Income then amount t else negate (amount t)
-          bal'  = bal + delta
-      in (bal', (t, bal') : acc)
-
--- Simple formatting helpers
+-- Formatting helpers
 
 pad :: Int -> String -> String
 pad n s =
@@ -183,8 +47,6 @@ showRowWithBalance (t, bal) =
   ++ pad 10 (printf "%.2f" (amount t)) ++ " | "
   ++ pad 10 (printf "%.2f" bal)   ++ " | "
   ++ description t
-
--- Table printing
 
 printTable :: Ledger -> IO ()
 printTable ledger = do
@@ -238,7 +100,7 @@ showTotals ledger = do
       putStrLn $ "  Category:    " ++ show (category t)
       putStrLn $ "  Description: " ++ description t
 
--- Input helpers and validation
+-- Input helpers
 
 readInt :: String -> IO (Maybe Int)
 readInt prompt = do
@@ -255,16 +117,6 @@ promptUntilValid prompt errorMessage = do
     Nothing  -> do
       putStrLn errorMessage
       promptUntilValid prompt errorMessage
-
-categoryListString :: String
-categoryListString =
-  "Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other"
-
-validateDate :: String -> Maybe String
-validateDate s =
-  case parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day of
-    Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
-    Nothing  -> Nothing
 
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
@@ -415,7 +267,7 @@ editTransactionInteractive ledger = do
               putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
               putStrLn "-----------------------------------------------------------------------"
               putStrLn (showRow newT)
-              return (updateTransaction newT ledger)
+              return (addTransaction newT (deleteById tid ledger))
 
 deleteTransactionInteractive :: Ledger -> IO Ledger
 deleteTransactionInteractive ledger = do
@@ -492,23 +344,6 @@ viewTransactionsInteractive ledger = do
   putStrLn ""
   putStrLn "Current ledger (with running balance):"
   printTableWithRunning ledger
-
--- Persistence
-
-saveLedgerToCsv :: Ledger -> IO ()
-saveLedgerToCsv ledger = do
-  let bytes = encodeDefaultOrderedByName ledger
-  BL.writeFile "ledger.csv" bytes
-
-loadLedgerFromCsv :: IO Ledger
-loadLedgerFromCsv = do
-  eBytes <- try (BL.readFile "ledger.csv") :: IO (Either IOException BL.ByteString)
-  case eBytes of
-    Left _ -> return sampleLedger
-    Right bytes ->
-      case decodeByName bytes of
-        Left _       -> return sampleLedger
-        Right (_, v) -> return (V.toList v)
 
 -- Menu and main loop
 
