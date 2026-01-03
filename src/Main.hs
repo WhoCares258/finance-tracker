@@ -73,8 +73,6 @@ printTable ledger = do
   putStrLn "-----------------------------------------------------------------------"
   mapM_ (putStrLn . showRow) ledger
 
--- running balance helpers
-
 computeBalances :: Ledger -> [(Transaction, Double)]
 computeBalances ledger =
   reverse (snd (foldl step (0, []) ledger))
