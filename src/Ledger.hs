@@ -1,3 +1,19 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+{- |
+Module      : Ledger
+Description : Core Business Logic and Data Types
+Copyright   : (c) Student, 2024
+License     : AllRightsReserved
+
+This module defines the core data structures and business logic for the application.
+It demonstrates:
+  * Custom Data Types (Transaction, Category)
+  * TypeClasses (HasId)
+  * Custom Monad (ValidationResult) for error handling
+  * Pure functional logic for calculations
+  * CSV persistence using the 'cassava' library
+-}
 
 module Ledger
   ( TransactionKind(..)
@@ -26,7 +42,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
 import Data.Csv
 import Control.Exception (try, IOException)
-import Data.Time (Day, getCurrentTime, utctDay)
+import Data.Time (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 
 -- Core data types
