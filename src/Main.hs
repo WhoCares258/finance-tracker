@@ -45,6 +45,7 @@ data Transaction = Transaction
 
 type Ledger = [Transaction]
 
+-- Sample data if no CSV exists
 sampleLedger :: Ledger
 sampleLedger =
   [ Transaction 1 "01-01-2024" Income  Salary        5000 "Monthly Salary"
