@@ -82,7 +82,8 @@ instance Applicative ValidationResult where
   _ <*> Error e    = Error e
 
 instance Monad ValidationResult where
-  Ok a   >>= f = f a
+  return = Ok
+  Ok a    >>= f = f a
   Error e >>= _ = Error e
 
 -- CSV encoding and decoding
@@ -153,8 +154,6 @@ validateDelete tid xs =
     then Ok (deleteById tid xs)
     else Error "Id does not exist. Please try again."
 
--- Running balance computation
-
 computeBalances :: Ledger -> [(Transaction, Double)]
 computeBalances ledger =
   reverse (snd (foldl step (0, []) ledger))
@@ -163,6 +162,12 @@ computeBalances ledger =
       let delta = if kind t == Income then amount t else negate (amount t)
           bal'  = bal + delta
       in (bal', (t, bal') : acc)
+
+avgAmount :: [Transaction] -> Double
+avgAmount xs =
+  if null xs
+    then 0
+    else sum (map amount xs) / fromIntegral (length xs)
 
 -- Simple formatting helpers
 
@@ -213,13 +218,9 @@ showTotals ledger = do
       count    = length ledger
       incomes  = filter (\t -> kind t == Income) ledger
       expenses = filter (\t -> kind t == Expense) ledger
-      avgAmount xs =
-        if null xs
-          then 0
-          else sum (map amount xs) / fromIntegral (length xs)
-      avgInc  = avgAmount incomes
-      avgExp  = avgAmount expenses
-      mHigh   = highestExpense ledger
+      avgInc   = avgAmount incomes
+      avgExp   = avgAmount expenses
+      mHigh    = highestExpense ledger
 
   putStrLn "----------------------------------------"
   putStrLn "Account totals"
@@ -271,6 +272,10 @@ validateDate s =
     Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
     Nothing  -> Nothing
 
+invalidDateMsg :: IO ()
+invalidDateMsg =
+  putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
   putStrLn $ label ++ " [Press Enter for today: " ++ today ++ "]:"
@@ -280,7 +285,7 @@ promptDateWithDefault label today = do
     else case validateDate input of
       Just d  -> return d
       Nothing -> do
-        putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+        invalidDateMsg
         promptDateWithDefault label today
 
 promptDateKeep :: String -> String -> IO String
@@ -292,7 +297,7 @@ promptDateKeep label current = do
     else case validateDate input of
       Just d  -> return d
       Nothing -> do
-        putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+        invalidDateMsg
         promptDateKeep label current
 
 promptPositiveAmount :: String -> IO Double
