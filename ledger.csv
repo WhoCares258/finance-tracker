@@ -1,111 +1,261 @@
 Id,Date,Kind,Category,Amount,Description
-1,01-01-2024,Income,Salary,5000.0,Monthly Salary
-3,03-01-2024,Expense,Rent,2000.0,January Rent
-4,04-01-2024,Expense,Transport,100.0,Metro Card
-5,05-01-2024,Expense,Entertainment,75.0,Concert Ticket
-6,06-01-2024,Expense,Utilities,120.0,Electricity Bill
-7,07-01-2024,Expense,Shopping,200.0,New Clothes
-8,08-01-2024,Expense,Food,45.0,Dinner Out
-9,10-01-2024,Expense,Healthcare,50.0,Pharmacy
-10,12-01-2024,Expense,Education,300.0,Online Course
-11,15-01-2024,Income,Investment,150.0,Stock Dividend
-12,16-01-2024,Expense,Travel,400.0,Flight Booking
-13,18-01-2024,Expense,Other,30.0,Gift for Friend
-14,20-01-2024,Expense,Food,120.0,Groceries
-15,22-01-2024,Expense,Transport,40.0,Uber Rides
-16,25-01-2024,Income,Salary,5000.0,Monthly Salary Bonus
-17,26-01-2024,Expense,Entertainment,20.0,Movie Night
-18,28-01-2024,Expense,Utilities,60.0,Internet Bill
-19,30-01-2024,Expense,Shopping,80.0,Home Decor
-20,01-02-2024,Income,Salary,5000.0,February Salary
-21,02-02-2024,Expense,Rent,1500.0,February Rent
-22,03-02-2024,Expense,Food,160.0,Groceries
-23,05-02-2024,Expense,Healthcare,100.0,Doctor Visit
-24,07-02-2024,Expense,Transport,50.0,Gas
-25,10-02-2024,Expense,Education,50.0,Books
-26,12-02-2024,Expense,Entertainment,100.0,Theme Park
-27,14-02-2024,Expense,Food,80.0,Valentine Dinner
-28,15-02-2024,Income,Other,200.0,Sold Old Bike
-29,18-02-2024,Expense,Utilities,110.0,Heating Bill
-30,20-02-2024,Expense,Shopping,150.0,Shoes
-31,22-02-2024,Expense,Travel,250.0,Hotel Booking
-32,25-02-2024,Expense,Investment,1000.0,Bought Stocks
-33,28-02-2024,Expense,Food,130.0,Groceries
-34,01-03-2024,Income,Salary,5000.0,March Salary
-35,02-03-2024,Expense,Rent,1500.0,March Rent
-36,03-03-2024,Expense,Transport,100.0,Monthly Pass
-37,05-03-2024,Expense,Healthcare,30.0,Vitamins
-38,08-03-2024,Expense,Education,200.0,Workshop Fee
-39,10-03-2024,Expense,Entertainment,60.0,Video Game
-40,12-03-2024,Expense,Utilities,90.0,Water Bill
-41,15-03-2024,Income,Investment,120.0,Interest
-42,18-03-2024,Expense,Shopping,300.0,Electronics
-43,20-03-2024,Expense,Food,140.0,Groceries
-44,22-03-2024,Expense,Travel,150.0,Train Tickets
-45,25-03-2024,Expense,Other,50.0,Donation
-46,28-03-2024,Expense,Food,55.0,Lunch with Colleagues
-47,30-03-2024,Expense,Transport,35.0,Taxi
-48,01-04-2024,Income,Salary,5000.0,April Salary
-49,02-04-2024,Expense,Rent,1500.0,April Rent
-50,04-04-2024,Expense,Utilities,100.0,Electricity
-51,06-04-2024,Expense,Food,170.0,Groceries
-52,08-04-2024,Expense,Healthcare,200.0,Dentist
-53,10-04-2024,Expense,Education,40.0,Stationery
-54,12-04-2024,Expense,Entertainment,45.0,Streaming Service
-55,15-04-2024,Income,Other,100.0,Refund
-56,18-04-2024,Expense,Shopping,120.0,Gifts
-57,20-04-2024,Expense,Travel,600.0,Vacation Package
-58,22-04-2024,Expense,Food,90.0,Restaurant
-59,25-04-2024,Expense,Transport,60.0,Gas
-60,28-04-2024,Expense,Investment,500.0,Mutual Fund
-61,01-05-2024,Income,Salary,5000.0,May Salary
-62,02-05-2024,Expense,Rent,1500.0,May Rent
-63,04-05-2024,Expense,Utilities,80.0,Phone Bill
-64,06-05-2024,Expense,Food,155.0,Groceries
-65,08-05-2024,Expense,Healthcare,25.0,Medicine
-66,10-05-2024,Expense,Education,150.0,Textbooks
-67,12-05-2024,Expense,Entertainment,85.0,Concert
-68,15-05-2024,Income,Investment,180.0,Dividends
-69,18-05-2024,Expense,Shopping,250.0,Summer Clothes
-70,20-05-2024,Expense,Travel,100.0,Car Rental
-71,22-05-2024,Expense,Other,40.0,Pet Supplies
-72,25-05-2024,Expense,Food,65.0,Brunch
-73,28-05-2024,Expense,Transport,45.0,Uber
-74,01-06-2024,Income,Salary,5000.0,June Salary
-75,02-06-2024,Expense,Rent,1500.0,June Rent
-76,04-06-2024,Expense,Utilities,130.0,AC Bill
-77,06-06-2024,Expense,Food,180.0,Groceries
-78,08-06-2024,Expense,Healthcare,150.0,Checkup
-79,10-06-2024,Expense,Education,60.0,Supplies
-80,12-06-2024,Expense,Entertainment,30.0,Cinema
-81,15-06-2024,Income,Other,50.0,Cashback
-82,18-06-2024,Expense,Shopping,90.0,Accessories
-83,20-06-2024,Expense,Travel,300.0,Weekend Trip
-84,22-06-2024,Expense,Food,100.0,Dinner Party
-85,25-06-2024,Expense,Transport,55.0,Gas
-86,28-06-2024,Expense,Investment,200.0,Crypto
-87,01-07-2024,Income,Salary,5000.0,July Salary
-88,02-07-2024,Expense,Rent,1500.0,July Rent
-89,04-07-2024,Expense,Utilities,140.0,Electricity
-91,08-07-2024,Expense,Healthcare,40.0,Eye Drops
-92,10-07-2024,Expense,Education,250.0,Certification
-93,12-07-2024,Expense,Entertainment,120.0,Festival
-94,15-07-2024,Income,Investment,200.0,Returns
-95,18-07-2024,Expense,Shopping,180.0,Gadgets
-96,20-07-2024,Expense,Travel,500.0,Flight
-97,22-07-2024,Expense,Other,60.0,Charity
-98,25-07-2024,Expense,Food,75.0,Lunch
-99,28-07-2024,Expense,Transport,30.0,Bus
-100,01-08-2024,Income,Salary,5000.0,August Salary
-101,02-08-2024,Expense,Rent,1500.0,August Rent
-102,04-08-2024,Expense,Utilities,115.0,Water & Power
-103,06-08-2024,Expense,Food,190.0,Groceries
-104,08-08-2024,Expense,Healthcare,80.0,Therapy
-105,10-08-2024,Expense,Education,100.0,Books
-106,12-08-2024,Expense,Entertainment,50.0,Bowling
-107,15-08-2024,Income,Other,300.0,Freelance
-108,18-08-2024,Expense,Shopping,140.0,Shoes
-109,20-08-2024,Expense,Travel,200.0,Hotel
-110,22-08-2024,Expense,Food,85.0,Dinner
-111,22-09-2024,Income,Investment,350.0,Crypto Withdrawal
-113,04-01-2026,Expense,Food,40.0,Lunch with Friends
+1,01-06-2025,Income,Salary,5500.0,Developer Salary
+2,02-06-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+3,02-06-2025,Expense,Food,6.89,Morning Coffee at Blue Bottle
+4,04-06-2025,Expense,Food,14.33,Team Lunch at Poke Bowl
+5,05-06-2025,Expense,Entertainment,15.99,Netflix Subscription
+6,05-06-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+7,05-06-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+8,05-06-2025,Expense,Entertainment,9.99,Spotify Subscription
+9,05-06-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+10,05-06-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+11,05-06-2025,Expense,Education,20.0,AI Assistant Subscription
+12,06-06-2025,Expense,Food,79.79,Friday Dinner at Steakhouse
+13,07-06-2025,Expense,Food,151.64,Weekly Groceries from Costco
+14,08-06-2025,Expense,Transport,64.07,Car Fuel Refill
+15,09-06-2025,Expense,Food,5.84,Morning Coffee at Local Cafe
+16,11-06-2025,Expense,Food,22.1,Team Lunch at Thai Place
+17,12-06-2025,Expense,Education,26.75,Books/Learning Material
+18,13-06-2025,Expense,Food,74.62,Friday Dinner at Tacos & Tequila
+19,14-06-2025,Expense,Food,169.36,Weekly Groceries from Aldi
+20,15-06-2025,Expense,Utilities,76.33,Electric & Gas Bill
+21,16-06-2025,Expense,Food,6.64,Morning Coffee at Dunkin
+22,16-06-2025,Income,Other,356.76,Freelance Micro-project
+23,16-06-2025,Expense,Other,40.54,Gift/Donation/Misc
+24,18-06-2025,Expense,Food,23.32,Team Lunch at Thai Place
+25,20-06-2025,Expense,Food,97.77,Friday Dinner at Pizza Place
+26,21-06-2025,Expense,Food,132.77,Weekly Groceries from Aldi
+27,23-06-2025,Expense,Food,6.23,Morning Coffee at Local Cafe
+28,25-06-2025,Expense,Food,22.66,Team Lunch at Sweetgreen
+29,25-06-2025,Expense,Investment,500.0,Monthly ETF Buy
+30,27-06-2025,Expense,Food,93.21,Friday Dinner at Gastropub
+31,28-06-2025,Expense,Food,209.8,Weekly Groceries from Whole Foods
+32,28-06-2025,Income,Investment,67.98,ETF Dividends Received
+33,29-06-2025,Income,Investment,202.27,Sold BTC
+34,30-06-2025,Expense,Food,6.34,Morning Coffee at Local Cafe
+35,01-07-2025,Income,Salary,5500.0,Developer Salary
+37,02-07-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+38,02-07-2025,Expense,Food,15.44,Team Lunch at Sushi Spot
+39,03-07-2025,Expense,Healthcare,19.94,Pharmacy/Doctor Co-pay
+40,04-07-2025,Expense,Food,55.04,Friday Dinner at Pizza Place
+42,05-07-2025,Expense,Entertainment,15.99,Netflix Subscription
+43,05-07-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+44,05-07-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+45,05-07-2025,Expense,Entertainment,9.99,Spotify Subscription
+46,05-07-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+47,05-07-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+48,05-07-2025,Expense,Education,20.0,AI Assistant Subscription
+49,05-07-2025,Expense,Food,219.89,Weekly Groceries from Aldi
+50,05-07-2025,Expense,Transport,31.43,Train Ticket
+51,07-07-2025,Expense,Food,4.85,Morning Coffee at Starbucks
+52,09-07-2025,Expense,Food,15.8,Team Lunch at Burger Joint
+53,10-07-2025,Expense,Travel,1191.97,Vacation Flight & Hotel
+54,11-07-2025,Expense,Food,59.23,Friday Dinner at Gastropub
+55,12-07-2025,Expense,Food,193.37,Weekly Groceries from Trader Joe's
+56,12-07-2025,Expense,Other,59.38,Gift/Donation/Misc
+57,13-07-2025,Expense,Transport,59.13,Car Fuel Refill
+58,14-07-2025,Expense,Food,4.53,Morning Coffee at Starbucks
+59,15-07-2025,Expense,Utilities,159.85,Electric & Gas Bill
+61,16-07-2025,Expense,Food,21.82,Team Lunch at Local Deli
+62,17-07-2025,Expense,Transport,32.36,Lyft Ride
+63,18-07-2025,Expense,Food,48.39,Friday Dinner at Ramen Bar
+64,19-07-2025,Expense,Food,153.07,Weekly Groceries from Whole Foods
+65,20-07-2025,Expense,Transport,63.13,Car Fuel Refill
+66,20-07-2025,Expense,Healthcare,57.37,Pharmacy/Doctor Co-pay
+67,21-07-2025,Expense,Food,5.39,Morning Coffee at Dunkin
+68,21-07-2025,Income,Investment,498.86,Sold ETH
+70,23-07-2025,Expense,Food,16.46,Team Lunch at Sushi Spot
+71,25-07-2025,Expense,Food,95.22,Friday Dinner at Tacos & Tequila
+72,25-07-2025,Expense,Investment,500.0,Monthly ETF Buy
+73,26-07-2025,Expense,Food,183.98,Weekly Groceries from Safeway
+74,28-07-2025,Expense,Food,6.54,Morning Coffee at Local Cafe
+75,30-07-2025,Expense,Food,19.84,Team Lunch at Sushi Spot
+76,01-08-2025,Income,Salary,5500.0,Developer Salary
+77,01-08-2025,Expense,Food,78.02,Friday Dinner at Steakhouse
+78,01-08-2025,Expense,Shopping,45.69,Bought Books
+79,02-08-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+80,02-08-2025,Expense,Food,168.33,Weekly Groceries from Trader Joe's
+81,03-08-2025,Expense,Transport,54.66,Car Fuel Refill
+82,03-08-2025,Expense,Shopping,67.21,Bought Smart Watch
+83,04-08-2025,Expense,Food,5.99,Morning Coffee at Starbucks
+84,05-08-2025,Expense,Entertainment,15.99,Netflix Subscription
+85,05-08-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+86,05-08-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+87,05-08-2025,Expense,Entertainment,9.99,Spotify Subscription
+88,05-08-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+89,05-08-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+90,05-08-2025,Expense,Education,20.0,AI Assistant Subscription
+91,05-08-2025,Expense,Shopping,692.06,Bought New GPU
+92,06-08-2025,Expense,Food,22.69,Team Lunch at Local Deli
+94,08-08-2025,Expense,Food,89.62,Friday Dinner at Gastropub
+95,09-08-2025,Expense,Food,151.41,Weekly Groceries from Trader Joe's
+96,10-08-2025,Expense,Transport,50.95,Car Fuel Refill
+97,11-08-2025,Expense,Food,5.87,Morning Coffee at Peet's
+98,11-08-2025,Expense,Other,41.44,Gift/Donation/Misc
+99,13-08-2025,Expense,Food,18.8,Team Lunch at Chipotle
+100,14-08-2025,Expense,Education,49.11,Books/Learning Material
+101,15-08-2025,Expense,Utilities,151.89,Electric & Gas Bill
+102,15-08-2025,Expense,Food,67.01,Friday Dinner at Seafood Grill
+103,15-08-2025,Expense,Healthcare,56.06,Pharmacy/Doctor Co-pay
+104,16-08-2025,Expense,Food,172.19,Weekly Groceries from Local Market
+105,17-08-2025,Expense,Transport,40.78,Car Fuel Refill
+106,18-08-2025,Expense,Food,5.14,Morning Coffee at Local Cafe
+107,18-08-2025,Expense,Other,42.68,Gift/Donation/Misc
+108,20-08-2025,Expense,Food,17.82,Team Lunch at Thai Place
+109,20-08-2025,Expense,Investment,160.52,Bought BTC
+110,20-08-2025,Expense,Transport,20.09,Scooter Rental
+111,21-08-2025,Expense,Other,59.41,Gift/Donation/Misc
+112,22-08-2025,Expense,Food,86.69,Friday Dinner at Italian Bistro
+113,23-08-2025,Expense,Food,188.46,Weekly Groceries from Local Market
+114,25-08-2025,Expense,Food,6.34,Morning Coffee at Starbucks
+115,25-08-2025,Expense,Investment,500.0,Monthly ETF Buy
+116,27-08-2025,Expense,Food,23.79,Team Lunch at Poke Bowl
+117,29-08-2025,Expense,Food,52.67,Friday Dinner at Steakhouse
+118,30-08-2025,Expense,Food,153.42,Weekly Groceries from Safeway
+119,01-09-2025,Income,Salary,5500.0,Developer Salary
+120,01-09-2025,Expense,Food,7.8,Morning Coffee at Local Cafe
+121,01-09-2025,Expense,Education,27.97,Books/Learning Material
+122,02-09-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+123,03-09-2025,Expense,Food,19.22,Team Lunch at Chipotle
+124,05-09-2025,Expense,Entertainment,15.99,Netflix Subscription
+125,05-09-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+126,05-09-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+127,05-09-2025,Expense,Entertainment,9.99,Spotify Subscription
+128,05-09-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+129,05-09-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+130,05-09-2025,Expense,Education,20.0,AI Assistant Subscription
+131,05-09-2025,Expense,Food,81.37,Friday Dinner at Gastropub
+132,06-09-2025,Expense,Food,114.44,Weekly Groceries from Aldi
+133,07-09-2025,Expense,Transport,64.96,Car Fuel Refill
+134,08-09-2025,Expense,Food,6.26,Morning Coffee at Starbucks
+135,10-09-2025,Expense,Food,13.15,Team Lunch at Local Deli
+136,12-09-2025,Expense,Food,48.33,Friday Dinner at Pizza Place
+137,13-09-2025,Expense,Food,202.35,Weekly Groceries from Trader Joe's
+138,14-09-2025,Expense,Transport,46.8,Car Fuel Refill
+139,15-09-2025,Expense,Utilities,77.97,Electric & Gas Bill
+140,15-09-2025,Expense,Food,4.7,Morning Coffee at Blue Bottle
+141,17-09-2025,Expense,Food,22.7,Team Lunch at Local Deli
+142,19-09-2025,Expense,Food,69.17,Friday Dinner at Steakhouse
+143,20-09-2025,Expense,Food,133.9,Weekly Groceries from Local Market
+144,21-09-2025,Expense,Other,30.32,Gift/Donation/Misc
+145,22-09-2025,Expense,Food,6.99,Morning Coffee at Blue Bottle
+146,24-09-2025,Expense,Food,14.71,Team Lunch at Burger Joint
+147,25-09-2025,Expense,Investment,500.0,Monthly ETF Buy
+148,26-09-2025,Expense,Food,98.94,Friday Dinner at Tacos & Tequila
+149,26-09-2025,Expense,Healthcare,39.39,Pharmacy/Doctor Co-pay
+150,27-09-2025,Expense,Food,127.98,Weekly Groceries from Whole Foods
+151,28-09-2025,Income,Investment,112.47,ETF Dividends Received
+152,29-09-2025,Expense,Food,6.58,Morning Coffee at Dunkin
+153,30-09-2025,Expense,Other,29.05,Gift/Donation/Misc
+154,01-10-2025,Income,Salary,5500.0,Developer Salary
+155,01-10-2025,Expense,Food,15.85,Team Lunch at Sushi Spot
+156,02-10-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+157,03-10-2025,Expense,Food,41.61,Friday Dinner at Indian Curry House
+158,04-10-2025,Expense,Food,149.14,Weekly Groceries from Trader Joe's
+159,05-10-2025,Expense,Entertainment,15.99,Netflix Subscription
+160,05-10-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+161,05-10-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+162,05-10-2025,Expense,Entertainment,9.99,Spotify Subscription
+163,05-10-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+164,05-10-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+165,05-10-2025,Expense,Education,20.0,AI Assistant Subscription
+166,06-10-2025,Expense,Food,5.22,Morning Coffee at Blue Bottle
+167,08-10-2025,Expense,Food,18.78,Team Lunch at Chipotle
+168,09-10-2025,Expense,Shopping,58.36,Bought Kitchen Gadget
+169,10-10-2025,Expense,Food,59.56,Friday Dinner at Tacos & Tequila
+170,11-10-2025,Expense,Food,109.32,Weekly Groceries from Local Market
+171,11-10-2025,Expense,Transport,35.82,Lyft Ride
+172,12-10-2025,Expense,Transport,64.9,Car Fuel Refill
+173,13-10-2025,Expense,Food,5.32,Morning Coffee at Local Cafe
+174,15-10-2025,Expense,Utilities,74.95,Electric & Gas Bill
+175,15-10-2025,Expense,Food,13.69,Team Lunch at Sandwich Shop
+176,17-10-2025,Expense,Food,77.61,Friday Dinner at Gastropub
+177,18-10-2025,Expense,Food,148.67,Weekly Groceries from Aldi
+178,20-10-2025,Expense,Food,6.13,Morning Coffee at Peet's
+179,22-10-2025,Expense,Food,14.31,Team Lunch at Sandwich Shop
+180,23-10-2025,Expense,Education,16.79,Books/Learning Material
+181,24-10-2025,Expense,Food,54.2,Friday Dinner at Seafood Grill
+182,25-10-2025,Expense,Food,134.91,Weekly Groceries from Aldi
+183,25-10-2025,Expense,Investment,500.0,Monthly ETF Buy
+184,26-10-2025,Expense,Transport,59.92,Car Fuel Refill
+185,27-10-2025,Expense,Food,5.35,Morning Coffee at Local Cafe
+186,29-10-2025,Expense,Food,17.5,Team Lunch at Sushi Spot
+187,31-10-2025,Expense,Food,88.43,Friday Dinner at Gastropub
+188,31-10-2025,Expense,Shopping,59.39,Bought Home Decor
+189,01-11-2025,Income,Salary,5500.0,Developer Salary
+190,01-11-2025,Expense,Food,154.11,Weekly Groceries from Safeway
+191,02-11-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+192,02-11-2025,Expense,Transport,53.31,Car Fuel Refill
+193,03-11-2025,Expense,Food,5.33,Morning Coffee at Blue Bottle
+194,05-11-2025,Expense,Entertainment,15.99,Netflix Subscription
+195,05-11-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+196,05-11-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+197,05-11-2025,Expense,Entertainment,9.99,Spotify Subscription
+198,05-11-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+199,05-11-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+200,05-11-2025,Expense,Education,20.0,AI Assistant Subscription
+201,05-11-2025,Expense,Food,15.16,Team Lunch at Poke Bowl
+202,07-11-2025,Expense,Food,75.42,Friday Dinner at Ramen Bar
+203,08-11-2025,Expense,Food,161.54,Weekly Groceries from Whole Foods
+204,10-11-2025,Expense,Food,7.1,Morning Coffee at Blue Bottle
+205,12-11-2025,Expense,Food,18.0,Team Lunch at Local Deli
+206,14-11-2025,Expense,Food,77.39,Friday Dinner at Italian Bistro
+207,14-11-2025,Expense,Other,25.14,Gift/Donation/Misc
+208,15-11-2025,Expense,Utilities,99.09,Electric & Gas Bill
+209,15-11-2025,Expense,Food,146.5,Weekly Groceries from Safeway
+210,16-11-2025,Expense,Transport,61.06,Car Fuel Refill
+211,16-11-2025,Expense,Transport,25.8,Train Ticket
+212,17-11-2025,Expense,Food,5.82,Morning Coffee at Blue Bottle
+213,19-11-2025,Expense,Food,12.04,Team Lunch at Sushi Spot
+214,21-11-2025,Expense,Food,79.22,Friday Dinner at Steakhouse
+215,21-11-2025,Expense,Other,24.71,Gift/Donation/Misc
+216,22-11-2025,Expense,Food,196.93,Weekly Groceries from Whole Foods
+217,24-11-2025,Expense,Food,4.74,Morning Coffee at Starbucks
+218,25-11-2025,Expense,Investment,500.0,Monthly ETF Buy
+219,26-11-2025,Expense,Food,16.78,Team Lunch at Burger Joint
+220,28-11-2025,Expense,Food,87.93,Friday Dinner at Tacos & Tequila
+221,29-11-2025,Expense,Food,144.08,Weekly Groceries from Whole Foods
+222,29-11-2025,Income,Investment,306.12,Sold ETH
+223,01-12-2025,Income,Salary,5500.0,Developer Salary
+224,01-12-2025,Expense,Food,4.5,Morning Coffee at Blue Bottle
+225,02-12-2025,Expense,Rent,1800.0,Monthly Apartment Rent
+226,03-12-2025,Expense,Food,23.7,Team Lunch at Sushi Spot
+227,03-12-2025,Expense,Shopping,116.7,Bought Jeans
+228,04-12-2025,Expense,Education,16.78,Books/Learning Material
+229,05-12-2025,Expense,Entertainment,15.99,Netflix Subscription
+230,05-12-2025,Expense,Utilities,60.0,Internet Fiber Subscription
+231,05-12-2025,Expense,Utilities,35.0,Mobile Plan Subscription
+232,05-12-2025,Expense,Entertainment,9.99,Spotify Subscription
+233,05-12-2025,Expense,Healthcare,45.0,Gym Membership Subscription
+234,05-12-2025,Expense,Utilities,2.99,Cloud Storage Subscription
+235,05-12-2025,Expense,Education,20.0,AI Assistant Subscription
+236,05-12-2025,Expense,Food,62.05,Friday Dinner at Steakhouse
+237,06-12-2025,Expense,Food,167.68,Weekly Groceries from Aldi
+238,08-12-2025,Expense,Food,7.7,Morning Coffee at Local Cafe
+239,10-12-2025,Expense,Food,15.99,Team Lunch at Sweetgreen
+240,10-12-2025,Expense,Other,52.0,Gift/Donation/Misc
+241,12-12-2025,Expense,Food,72.57,Friday Dinner at Seafood Grill
+242,13-12-2025,Expense,Food,108.36,Weekly Groceries from Local Market
+243,15-12-2025,Expense,Utilities,153.02,Electric & Gas Bill
+244,15-12-2025,Expense,Food,5.43,Morning Coffee at Dunkin
+245,17-12-2025,Expense,Food,16.53,Team Lunch at Sweetgreen
+246,19-12-2025,Expense,Food,99.46,Friday Dinner at Seafood Grill
+247,20-12-2025,Expense,Food,160.6,Weekly Groceries from Local Market
+248,20-12-2025,Expense,Investment,182.34,Bought SOL
+249,20-12-2025,Expense,Travel,1395.72,Vacation Flight & Hotel
+250,21-12-2025,Expense,Transport,61.72,Car Fuel Refill
+251,22-12-2025,Expense,Food,7.99,Morning Coffee at Blue Bottle
+252,24-12-2025,Expense,Food,16.36,Team Lunch at Poke Bowl
+253,25-12-2025,Expense,Investment,500.0,Monthly ETF Buy
+254,26-12-2025,Expense,Food,84.21,Friday Dinner at Seafood Grill
+255,27-12-2025,Expense,Food,122.18,Weekly Groceries from Local Market
+256,28-12-2025,Income,Investment,73.1,ETF Dividends Received
+257,29-12-2025,Expense,Food,7.9,Morning Coffee at Starbucks
+258,29-12-2025,Expense,Shopping,68.85,Bought Home Decor
+259,30-12-2025,Income,Other,190.13,Freelance Micro-project
+260,31-12-2025,Expense,Food,17.72,Team Lunch at Burger Joint
+261,01-01-2026,Income,Salary,6200.0,Senior Developer Salary
+263,02-01-2026,Expense,Rent,1950.0,Monthly Apartment Rent
+264,02-01-2026,Expense,Food,55.08,Friday Dinner at Seafood Grill
+265,02-01-2026,Expense,Investment,181.43,Bought ETH
+266,03-01-2026,Expense,Food,149.38,Weekly Groceries from Costco
