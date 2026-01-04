@@ -10,7 +10,7 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
-import Data.List (maximumBy, isInfixOf)
+import Data.List (maximumBy, isInfixOf, foldl')
 import Data.Ord  (comparing)
 import Data.Char (toLower)
 
@@ -157,7 +157,7 @@ validateDelete tid xs =
 
 computeBalances :: Ledger -> [(Transaction, Double)]
 computeBalances ledger =
-  reverse (snd (foldl step (0, []) ledger))
+  reverse (snd (foldl' step (0, []) ledger))
   where
     step (bal, acc) t =
       let delta = if kind t == Income then amount t else negate (amount t)
@@ -168,7 +168,9 @@ avgAmount :: [Transaction] -> Double
 avgAmount xs =
   if null xs
     then 0
-    else sum (map amount xs) / fromIntegral (length xs)
+    else
+      let total = foldl' (\acc t -> acc + amount t) 0 xs
+      in total / fromIntegral (length xs)
 
 -- Simple formatting helpers
 
