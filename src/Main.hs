@@ -135,7 +135,7 @@ addTransaction :: Transaction -> Ledger -> Ledger
 addTransaction t ledger = ledger ++ [t]
 
 nextId :: Ledger -> Int
-nextId [] = 1
+nextId []     = 1
 nextId ledger = maximum (map transactionId ledger) + 1
 
 updateTransaction :: Transaction -> Ledger -> Ledger
@@ -510,7 +510,7 @@ loadLedgerFromCsv :: IO Ledger
 loadLedgerFromCsv = do
   eBytes <- try (BL.readFile "ledger.csv") :: IO (Either IOException BL.ByteString)
   case eBytes of
-    Left _ -> return sampleLedger
+    Left _      -> return sampleLedger
     Right bytes ->
       case decodeByName bytes of
         Left _       -> return sampleLedger
