@@ -82,7 +82,7 @@ instance Applicative ValidationResult where
   _ <*> Error e    = Error e
 
 instance Monad ValidationResult where
-  return = Ok
+  return = pure
   Ok a    >>= f = f a
   Error e >>= _ = Error e
 
