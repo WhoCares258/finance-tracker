@@ -10,8 +10,9 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
-import Data.List (maximumBy)
+import Data.List (maximumBy, isInfixOf)
 import Data.Ord  (comparing)
+import Data.Char (toLower)
 
 -- Domain types
 
@@ -338,6 +339,16 @@ promptRead label current = do
     Just val -> return val
     Nothing  -> return current
 
+-- Search helpers
+
+normalize :: String -> String
+normalize = map toLower
+
+searchByDescription :: String -> Ledger -> Ledger
+searchByDescription term ledger =
+  let term' = normalize term
+  in filter (\t -> term' `isInfixOf` normalize (description t)) ledger
+
 -- Interactive operations
 
 addTransactionInteractive :: Ledger -> IO Ledger
@@ -346,29 +357,21 @@ addTransactionInteractive ledger = do
   putStrLn "----------------------------------------"
   putStrLn "Add new transaction"
   putStrLn "----------------------------------------"
-
   now <- getCurrentTime
   let today = formatTime defaultTimeLocale "%d-%m-%Y" (utctDay now)
-
   d <- promptDateWithDefault "Date (dd-mm-yyyy)" today
-
   k <- promptUntilValid
          "Kind (Income or Expense):"
          "Invalid kind. Please enter \"Income\" or \"Expense\"."
-
   c <- promptUntilValid
          ("Category (" ++ categoryListString ++ "):")
          "Invalid category. Please choose from the list."
-
   putStrLn "Description:"
   desc <- getLine
-
   a <- promptPositiveAmount "Amount:"
-
   let newId   = nextId ledger
       t       = Transaction newId d k c a desc
       updated = addTransaction t ledger
-
   putStrLn ""
   putStrLn "Transaction added successfully:"
   putStrLn "ID   | Date       | Kind     | Category      | Amount     | Description"
@@ -392,23 +395,18 @@ editTransactionInteractive ledger = do
         (oldT:_) -> do
           putStrLn ""
           putStrLn "Editing transaction. Leave a field empty to keep its current value."
-
           newDate     <- promptDateKeep "Date" (date oldT)
           newKind     <- promptRead "Kind (Income/Expense)" (kind oldT)
           newCategory <- promptRead "Category"              (category oldT)
-
-          descInput <- promptFor "Description" (description oldT)
+          descInput   <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
-
-          newAmount <- promptPositiveAmountKeep "Amount" (amount oldT)
-
+          newAmount   <- promptPositiveAmountKeep "Amount" (amount oldT)
           let newT = oldT { date        = newDate
                           , kind        = newKind
                           , category    = newCategory
                           , description = newDesc
                           , amount      = newAmount
                           }
-
           if newT == oldT
             then do
               putStrLn ""
@@ -448,12 +446,9 @@ viewByCategoryInteractive ledger = do
   putStrLn "----------------------------------------"
   putStrLn "View by Category"
   putStrLn "----------------------------------------"
-
   c <- promptUntilValid ("Category (" ++ categoryListString ++ "):")
                         "Invalid Category. Please choose from the list."
-
   let filtered = filter (\t -> category t == c) ledger
-
   putStrLn ""
   putStrLn $ "Transactions for category: " ++ show c
   printTable filtered
@@ -465,10 +460,8 @@ viewCategoryDistribution ledger = do
       totalExp = sum (map amount expenses)
       totalInc = sum (map amount incomes)
       allCats  = [minBound .. maxBound] :: [Category]
-
       calcSum :: [Transaction] -> Category -> Double
       calcSum ts c = sum [amount t | t <- ts, category t == c]
-
       printDist :: String -> Double -> [Transaction] -> IO ()
       printDist title total ts = do
         putStrLn ""
@@ -489,7 +482,6 @@ viewCategoryDistribution ledger = do
           ) allCats
         putStrLn "----------------------------------------"
         putStrLn $ "Total:          " ++ printf "%.2f" total
-
   printDist "Expense" totalExp expenses
   printDist "Income"  totalInc incomes
 
@@ -498,6 +490,25 @@ viewTransactionsInteractive ledger = do
   putStrLn ""
   putStrLn "Current ledger (with running balance):"
   printTableWithRunning ledger
+
+searchTransactionsInteractive :: Ledger -> IO ()
+searchTransactionsInteractive ledger = do
+  putStrLn ""
+  putStrLn "----------------------------------------"
+  putStrLn "Search transactions by description"
+  putStrLn "----------------------------------------"
+  putStrLn "Enter a keyword (case insensitive):"
+  term <- getLine
+  if null term
+    then putStrLn "Empty keyword. Nothing to search."
+    else do
+      let results = searchByDescription term ledger
+      if null results
+        then putStrLn "No transactions matched your search."
+        else do
+          putStrLn ""
+          putStrLn $ "Search results for \"" ++ term ++ "\":"
+          printTable results
 
 -- Persistence
 
@@ -531,9 +542,10 @@ printMenu = do
   putStrLn "5. View totals"
   putStrLn "6. View by category"
   putStrLn "7. View category distribution"
+  putStrLn "8. Search transactions by description"
   putStrLn "0. Exit and save"
   putStrLn "----------------------------------------"
-  putStrLn "Please choose an option (0-7):"
+  putStrLn "Please choose an option (0-8):"
 
 loop :: Ledger -> IO Ledger
 loop ledger = do
@@ -561,11 +573,14 @@ loop ledger = do
     "7" -> do
       viewCategoryDistribution ledger
       loop ledger
+    "8" -> do
+      searchTransactionsInteractive ledger
+      loop ledger
     "0" -> do
       putStrLn "Saving your data and exiting. Goodbye."
       return ledger
     _ -> do
-      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 7.")
+      putStrLn ("Invalid option: \"" ++ choice ++ "\". Please choose a number from 0 to 8.")
       loop ledger
 
 main :: IO ()
