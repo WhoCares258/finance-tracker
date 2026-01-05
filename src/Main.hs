@@ -10,7 +10,7 @@ import Control.Exception (try, IOException)
 import Data.Time (getCurrentTime, utctDay, Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, parseTimeM)
 import Text.Printf (printf)
-import Data.List (maximumBy, isInfixOf, foldl')
+import Data.List (maximumBy, isInfixOf)
 import Data.Ord  (comparing)
 import Data.Char (toLower)
 
