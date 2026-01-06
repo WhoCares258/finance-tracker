@@ -318,13 +318,6 @@ promptDateKeep label current = do
         invalidDateMsg
         promptDateKeep label current
 
-promptRead :: (Read a, Show a) => String -> a -> IO a
-promptRead label current = do
-  input <- promptFor label (show current)
-  case readMaybe input of
-    Just val -> return val
-    Nothing  -> return current
-
 promptFor :: String -> String -> IO String
 promptFor label currentValue = do
   putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
@@ -347,6 +340,17 @@ promptPositiveAmountKeep label current = do
             promptPositiveAmountKeep label current
           else return x
 
+promptValidKeep :: (Read a, Show a) => String -> a -> String -> IO a
+promptValidKeep label current errorMsg = do
+  putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
+  input <- getLine
+  if null input
+    then return current
+    else case readMaybe input of
+      Just val -> return val
+      Nothing  -> do
+        putStrLn errorMsg
+        promptValidKeep label current errorMsg
 
 -- Search helpers
 
@@ -405,8 +409,8 @@ editTransactionInteractive ledger = do
           putStrLn ""
           putStrLn "Editing transaction. Leave a field empty to keep its current value."
           newDate     <- promptDateKeep "Date" (date oldT)
-          newKind     <- promptRead "Kind (Income/Expense)" (kind oldT)
-          newCategory <- promptRead "Category"              (category oldT)
+          newKind     <- promptValidKeep "Kind (Income/Expense)" (kind oldT) "Invalid kind. Please enter \"Income\" or \"Expense\"."
+          newCategory <- promptValidKeep ("Category (" ++ categoryListString ++ ")") (category oldT) "Invalid category. Please choose from the list."
           descInput   <- promptFor "Description" (description oldT)
           let newDesc = if null descInput then description oldT else descInput
           newAmount   <- promptPositiveAmountKeep "Amount" (amount oldT)
