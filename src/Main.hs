@@ -128,6 +128,14 @@ netBalance :: Ledger -> Double
 netBalance ledger =
   totalIncome ledger - totalExpense ledger
 
+avgAmount :: [Transaction] -> Double
+avgAmount xs =
+  if null xs
+    then 0
+    else
+      let total = foldl' (\acc t -> acc + amount t) 0 xs
+      in total / fromIntegral (length xs)
+
 highestExpense :: Ledger -> Maybe Transaction
 highestExpense ledger =
   case filter (\t -> kind t == Expense) ledger of
@@ -163,14 +171,6 @@ computeBalances ledger =
       let delta = if kind t == Income then amount t else negate (amount t)
           bal'  = bal + delta
       in (bal', (t, bal') : acc)
-
-avgAmount :: [Transaction] -> Double
-avgAmount xs =
-  if null xs
-    then 0
-    else
-      let total = foldl' (\acc t -> acc + amount t) 0 xs
-      in total / fromIntegral (length xs)
 
 -- Simple formatting helpers
 
@@ -212,40 +212,6 @@ printTableWithRunning ledger = do
   putStrLn "ID   | Date       | Kind     | Category      | Amount     | Balance    | Description"
   putStrLn "-------------------------------------------------------------------------------"
   mapM_ (putStrLn . showRowWithBalance) (computeBalances ledger)
-
-showTotals :: Ledger -> IO ()
-showTotals ledger = do
-  let inc      = totalIncome ledger
-      exps     = totalExpense ledger
-      net      = netBalance ledger
-      count    = length ledger
-      incomes  = filter (\t -> kind t == Income) ledger
-      expenses = filter (\t -> kind t == Expense) ledger
-      avgInc   = avgAmount incomes
-      avgExp   = avgAmount expenses
-      mHigh    = highestExpense ledger
-
-  putStrLn "----------------------------------------"
-  putStrLn "Account totals"
-  putStrLn "----------------------------------------"
-  putStrLn $ "Number of transactions: " ++ show count
-  putStrLn $ "Total income:           " ++ printf "%.2f" inc
-  putStrLn $ "Total expenses:         " ++ printf "%.2f" exps
-  putStrLn $ "Net balance:            " ++ printf "%.2f" net
-  putStrLn $ "Average income:         " ++ printf "%.2f" avgInc
-  putStrLn $ "Average expense:        " ++ printf "%.2f" avgExp
-
-  case mHigh of
-    Nothing -> do
-      putStrLn ""
-      putStrLn "Highest expense: none recorded yet."
-    Just t  -> do
-      putStrLn ""
-      putStrLn "Highest expense:"
-      putStrLn $ "  Amount:      " ++ printf "%.2f" (amount t)
-      putStrLn $ "  Date:        " ++ date t
-      putStrLn $ "  Category:    " ++ show (category t)
-      putStrLn $ "  Description: " ++ description t
 
 -- Input helpers and validation
 
@@ -318,11 +284,23 @@ promptDateKeep label current = do
         invalidDateMsg
         promptDateKeep label current
 
+promptValidKeep :: (Read a, Show a) => String -> a -> String -> IO a
+promptValidKeep label current errorMsg = do
+  putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
+  input <- getLine
+  if null input
+    then return current
+    else case readMaybe input of
+      Just val -> return val
+      Nothing  -> do
+        putStrLn errorMsg
+        promptValidKeep label current errorMsg
+
 promptFor :: String -> String -> IO String
 promptFor label currentValue = do
   putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
   getLine
-    
+        
 promptPositiveAmountKeep :: String -> Double -> IO Double
 promptPositiveAmountKeep label current = do
   putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
@@ -339,18 +317,6 @@ promptPositiveAmountKeep label current = do
             putStrLn "Amount must be greater than 0."
             promptPositiveAmountKeep label current
           else return x
-
-promptValidKeep :: (Read a, Show a) => String -> a -> String -> IO a
-promptValidKeep label current errorMsg = do
-  putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
-  input <- getLine
-  if null input
-    then return current
-    else case readMaybe input of
-      Just val -> return val
-      Nothing  -> do
-        putStrLn errorMsg
-        promptValidKeep label current errorMsg
 
 -- Search helpers
 
@@ -453,6 +419,40 @@ deleteTransactionInteractive ledger = do
           printTable updated
           return updated
 
+showTotals :: Ledger -> IO ()
+showTotals ledger = do
+  let inc      = totalIncome ledger
+      exps     = totalExpense ledger
+      net      = netBalance ledger
+      count    = length ledger
+      incomes  = filter (\t -> kind t == Income) ledger
+      expenses = filter (\t -> kind t == Expense) ledger
+      avgInc   = avgAmount incomes
+      avgExp   = avgAmount expenses
+      mHigh    = highestExpense ledger
+
+  putStrLn "----------------------------------------"
+  putStrLn "Account totals"
+  putStrLn "----------------------------------------"
+  putStrLn $ "Number of transactions: " ++ show count
+  putStrLn $ "Total income:           " ++ printf "%.2f" inc
+  putStrLn $ "Total expenses:         " ++ printf "%.2f" exps
+  putStrLn $ "Net balance:            " ++ printf "%.2f" net
+  putStrLn $ "Average income:         " ++ printf "%.2f" avgInc
+  putStrLn $ "Average expense:        " ++ printf "%.2f" avgExp
+
+  case mHigh of
+    Nothing -> do
+      putStrLn ""
+      putStrLn "Highest expense: none recorded yet."
+    Just t  -> do
+      putStrLn ""
+      putStrLn "Highest expense:"
+      putStrLn $ "  Amount:      " ++ printf "%.2f" (amount t)
+      putStrLn $ "  Date:        " ++ date t
+      putStrLn $ "  Category:    " ++ show (category t)
+      putStrLn $ "  Description: " ++ description t
+
 viewByCategoryInteractive :: Ledger -> IO ()
 viewByCategoryInteractive ledger = do
   putStrLn ""
@@ -466,37 +466,44 @@ viewByCategoryInteractive ledger = do
   putStrLn $ "Transactions for category: " ++ show c
   printTable filtered
 
+categorySums :: [Transaction] -> [(Category, Double)]
+categorySums ts = 
+  [ (c, sum [amount t | t <- ts, category t == c]) 
+  | c <- [minBound .. maxBound]
+  ]
+
+printDistributionTable :: String -> Double -> [(Category, Double)] -> IO ()
+printDistributionTable title total sums = do
+  putStrLn ""
+  putStrLn "----------------------------------------"
+  putStrLn $ title ++ " Distribution"
+  putStrLn "----------------------------------------"
+  putStrLn "Category        | Amount     | %"
+  putStrLn "----------------------------------------"
+  mapM_ (printDistributionRow total) sums
+  putStrLn "----------------------------------------"
+  putStrLn $ "Total:          " ++ printf "%.2f" total
+
+printDistributionRow :: Double -> (Category, Double) -> IO ()
+printDistributionRow total (c, s)
+  | s > 0 = do
+      let pct = if total > 0 then (s / total) * 100 else 0
+      putStrLn $ pad 15 (show c) ++ " | "
+                 ++ pad 10 (printf "%.2f" s) ++ " | "
+                 ++ printf "%.1f%%" pct
+  | otherwise = return ()
+
 viewCategoryDistribution :: Ledger -> IO ()
 viewCategoryDistribution ledger = do
   let expenses = filter (\t -> kind t == Expense) ledger
       incomes  = filter (\t -> kind t == Income) ledger
-      totalExp = sum (map amount expenses)
-      totalInc = sum (map amount incomes)
-      allCats  = [minBound .. maxBound] :: [Category]
-      calcSum :: [Transaction] -> Category -> Double
-      calcSum ts c = sum [amount t | t <- ts, category t == c]
-      printDist :: String -> Double -> [Transaction] -> IO ()
-      printDist title total ts = do
-        putStrLn ""
-        putStrLn "----------------------------------------"
-        putStrLn $ title ++ " Distribution"
-        putStrLn "----------------------------------------"
-        putStrLn "Category        | Amount     | %"
-        putStrLn "----------------------------------------"
-        mapM_ (\c -> do
-          let s = calcSum ts c
-          if s > 0
-            then do
-              let pct = if total > 0 then (s / total) * 100 else 0
-              putStrLn $ pad 15 (show c) ++ " | "
-                         ++ pad 10 (printf "%.2f" s) ++ " | "
-                         ++ printf "%.1f%%" pct
-            else return ()
-          ) allCats
-        putStrLn "----------------------------------------"
-        putStrLn $ "Total:          " ++ printf "%.2f" total
-  printDist "Expense" totalExp expenses
-  printDist "Income"  totalInc incomes
+      totalExp = totalExpense expenses
+      totalInc = totalIncome incomes
+      expSums  = categorySums expenses
+      incSums  = categorySums incomes
+
+  printDistributionTable "Expense" totalExp expSums
+  printDistributionTable "Income"  totalInc incSums
 
 viewTransactionsInteractive :: Ledger -> IO ()
 viewTransactionsInteractive ledger = do
