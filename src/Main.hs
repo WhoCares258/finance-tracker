@@ -134,12 +134,12 @@ highestExpense ledger =
     []    -> Nothing
     exps  -> Just (maximumBy (comparing amount) exps)
 
-addTransaction :: Transaction -> Ledger -> Ledger
-addTransaction t ledger = ledger ++ [t]
-
 nextId :: Ledger -> Int
 nextId []     = 1
 nextId ledger = maximum (map transactionId ledger) + 1
+
+addTransaction :: Transaction -> Ledger -> Ledger
+addTransaction t ledger = ledger ++ [t]
 
 updateTransaction :: Transaction -> Ledger -> Ledger
 updateTransaction newT =
@@ -249,36 +249,6 @@ showTotals ledger = do
 
 -- Input helpers and validation
 
-readInt :: String -> IO (Maybe Int)
-readInt prompt = do
-  putStrLn prompt
-  input <- getLine
-  return (readMaybe input)
-
-promptUntilValid :: Read a => String -> String -> IO a
-promptUntilValid prompt errorMessage = do
-  putStrLn prompt
-  input <- getLine
-  case readMaybe input of
-    Just val -> return val
-    Nothing  -> do
-      putStrLn errorMessage
-      promptUntilValid prompt errorMessage
-
-categoryListString :: String
-categoryListString =
-  "Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other"
-
-validateDate :: String -> Maybe String
-validateDate s =
-  case parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day of
-    Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
-    Nothing  -> Nothing
-
-invalidDateMsg :: IO ()
-invalidDateMsg =
-  putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
-
 promptDateWithDefault :: String -> String -> IO String
 promptDateWithDefault label today = do
   putStrLn $ label ++ " [Press Enter for today: " ++ today ++ "]:"
@@ -291,17 +261,15 @@ promptDateWithDefault label today = do
         invalidDateMsg
         promptDateWithDefault label today
 
-promptDateKeep :: String -> String -> IO String
-promptDateKeep label current = do
-  putStrLn $ label ++ " [" ++ current ++ "] (press Enter to keep):"
+promptUntilValid :: Read a => String -> String -> IO a
+promptUntilValid prompt errorMessage = do
+  putStrLn prompt
   input <- getLine
-  if null input
-    then return current
-    else case validateDate input of
-      Just d  -> return d
-      Nothing -> do
-        invalidDateMsg
-        promptDateKeep label current
+  case readMaybe input of
+    Just val -> return val
+    Nothing  -> do
+      putStrLn errorMessage
+      promptUntilValid prompt errorMessage
 
 promptPositiveAmount :: String -> IO Double
 promptPositiveAmount label = do
@@ -318,6 +286,50 @@ promptPositiveAmount label = do
           promptPositiveAmount label
         else return x
 
+readInt :: String -> IO (Maybe Int)
+readInt prompt = do
+  putStrLn prompt
+  input <- getLine
+  return (readMaybe input)
+
+categoryListString :: String
+categoryListString =
+  "Food | Rent | Transport | Salary | Entertainment | Utilities | Healthcare | Education | Shopping | Investment | Travel | Other"
+
+validateDate :: String -> Maybe String
+validateDate s =
+  case parseTimeM True defaultTimeLocale "%d-%m-%Y" s :: Maybe Day of
+    Just day -> Just (formatTime defaultTimeLocale "%d-%m-%Y" day)
+    Nothing  -> Nothing
+
+invalidDateMsg :: IO ()
+invalidDateMsg =
+  putStrLn "Invalid date. Please use dd-mm-yyyy (for example 05-03-2024)."
+
+promptDateKeep :: String -> String -> IO String
+promptDateKeep label current = do
+  putStrLn $ label ++ " [" ++ current ++ "] (press Enter to keep):"
+  input <- getLine
+  if null input
+    then return current
+    else case validateDate input of
+      Just d  -> return d
+      Nothing -> do
+        invalidDateMsg
+        promptDateKeep label current
+
+promptRead :: (Read a, Show a) => String -> a -> IO a
+promptRead label current = do
+  input <- promptFor label (show current)
+  case readMaybe input of
+    Just val -> return val
+    Nothing  -> return current
+
+promptFor :: String -> String -> IO String
+promptFor label currentValue = do
+  putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
+  getLine
+    
 promptPositiveAmountKeep :: String -> Double -> IO Double
 promptPositiveAmountKeep label current = do
   putStrLn $ label ++ " [" ++ show current ++ "] (press Enter to keep):"
@@ -335,17 +347,6 @@ promptPositiveAmountKeep label current = do
             promptPositiveAmountKeep label current
           else return x
 
-promptFor :: String -> String -> IO String
-promptFor label currentValue = do
-  putStrLn $ label ++ " [" ++ currentValue ++ "] (press Enter to keep):"
-  getLine
-
-promptRead :: (Read a, Show a) => String -> a -> IO a
-promptRead label current = do
-  input <- promptFor label (show current)
-  case readMaybe input of
-    Just val -> return val
-    Nothing  -> return current
 
 -- Search helpers
 

@@ -235,7 +235,7 @@ Id,Date,Kind,Category,Amount,Description
 239,10-12-2025,Expense,Food,15.99,Team Lunch at Sweetgreen
 240,10-12-2025,Expense,Other,52.0,Gift/Donation/Misc
 241,12-12-2025,Expense,Food,72.57,Friday Dinner at Seafood Grill
-242,13-12-2025,Expense,Food,108.36,Weekly Groceries from Local Market
+242,14-12-2025,Expense,Food,100.0,Weekly Groceries from Local Market
 243,15-12-2025,Expense,Utilities,153.02,Electric & Gas Bill
 244,15-12-2025,Expense,Food,5.43,Morning Coffee at Dunkin
 245,17-12-2025,Expense,Food,16.53,Team Lunch at Sweetgreen
@@ -259,3 +259,4 @@ Id,Date,Kind,Category,Amount,Description
 264,02-01-2026,Expense,Food,55.08,Friday Dinner at Seafood Grill
 265,02-01-2026,Expense,Investment,181.43,Bought ETH
 266,03-01-2026,Expense,Food,149.38,Weekly Groceries from Costco
+267,05-01-2026,Expense,Entertainment,15.99,Netflix Subscription
