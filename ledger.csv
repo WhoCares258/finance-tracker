@@ -229,7 +229,6 @@ Id,Date,Kind,Category,Amount,Description
 233,05-12-2025,Expense,Healthcare,45.0,Gym Membership Subscription
 234,05-12-2025,Expense,Utilities,2.99,Cloud Storage Subscription
 235,05-12-2025,Expense,Education,20.0,AI Assistant Subscription
-236,05-12-2025,Expense,Food,62.05,Friday Dinner at Steakhouse
 237,06-12-2025,Expense,Food,167.68,Weekly Groceries from Aldi
 238,08-12-2025,Expense,Food,7.7,Morning Coffee at Local Cafe
 239,10-12-2025,Expense,Food,15.99,Team Lunch at Sweetgreen
@@ -259,4 +258,4 @@ Id,Date,Kind,Category,Amount,Description
 264,02-01-2026,Expense,Food,55.08,Friday Dinner at Seafood Grill
 265,02-01-2026,Expense,Investment,181.43,Bought ETH
 266,03-01-2026,Expense,Food,149.38,Weekly Groceries from Costco
-267,05-01-2026,Expense,Entertainment,15.99,Netflix Subscription
+268,05-01-2026,Expense,Food,36.3,Lunch with Friends
